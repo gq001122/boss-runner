@@ -1044,20 +1044,21 @@
             // 创建道具
             lv.items.forEach(i => game.items.push(new Item(i)));
             
-            setTimeout(() => {
-                game.enemies.forEach(e => e.spawn());
-                game.items.forEach(i => i.spawn());
-                
-                // 传送门
-                const exitPlat = game.platforms[lv.exit.p];
-                const portalX = exitPlat.x + exitPlat.width * lv.exit.pos;
-                const portalY = exitPlat.y - 35;
-                game.exitPortal = new Portal(portalX, portalY);
-                
-                // 创建玩家并放置到平台
-                game.player = new Player();
-                game.player.spawn();
-            }, 100);
+            // 立即放置玩家到平台
+            game.player = new Player();
+            game.player.spawn();
+            
+            // 立即spawn敌人
+            game.enemies.forEach(e => e.spawn());
+            
+            // 立即spawn道具
+            game.items.forEach(i => i.spawn());
+            
+            // 创建传送门
+            const exitPlat = game.platforms[lv.exit.p];
+            const portalX = exitPlat.x + exitPlat.width * lv.exit.pos;
+            const portalY = exitPlat.y - 35;
+            game.exitPortal = new Portal(portalX, portalY);
             
             updateUI();
             updateItemBar();
