@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🏃 老板哪里跑</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { width: 100%; height: 100%; overflow: hidden; touch-action: none; user-select: none; }
+        body { font-family: 'Microsoft YaHei', sans-serif; background: #1a1a2e; }
+        
+        #gameContainer { position: relative; width: 100%; height: 100%; overflow: hidden; }
+        
+        /* 顶部状态栏 */
+        .topBar {
+            position: absolute; top: 0; left: 0; right: 0; height: 50px;
+            background: rgba(0,0,0,0.8); display: flex; justify-content: space-between; align-items: center;
+            padding: 0 15px; z-index: 100;
+        }
+        .stat { text-align: center; }
+        .stat-label { font-size: 10px; color: #888; }
+        .stat-value { font-size: 18px; font-weight: bold; color: #fff; }
+        .stat-value.score { color: #ffd93d; }
+        .stat-value.combo { color: #e94560; }
+        .stat-value.time { color: #4ecca3; }
+        
+        /* 游戏画布 */
+        #gameCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        
+        /* 任务提示 */
+        .missionTip {
+            position: absolute; top: 55px; left: 50%; transform: translateX(-50%);
+            background: rgba(0,0,0,0.7); padding: 8px 20px; border-radius: 20px;
+            color: #fff; font-size: 12px; z-index: 100; white-space: nowrap;
+        }
+        .missionTip .task { color: #ffd93d; }
+        
+        /* 虚拟摇杆 */
+        #joystickArea {
+            position: absolute; bottom: 120px; left: 20px; width: 120px; height: 120px;
+            background: rgba(255,255,255,0.1); border-radius: 50%; border: 3px solid rgba(255,255,255,0.2);
+            z-index: 100;
+        }
+        #joystick {
+            position: absolute; width: 50px; height: 50px;
+            background: rgba(233,69,96,0.8); border-radius: 50%;
+            top: 50%; left: 50%; transform: translate(-50%, -50%);
+            transition: none;
+        }
+        
+        /* 操作按钮 */
+        .actionBtns {
+            position: absolute; bottom: 20px; right: 20px;
+            display: grid; grid-template-columns: repeat(2, 60px); gap: 10px;
+            z-index: 100;
+        }
+        .actionBtn {
+            width: 60px; height: 60px; border-radius: 50%;
+            background: rgba(233,69,96,0.8); border: 3px solid #fff;
+            color: #fff; font-size: 24px; display: flex; justify-content: center; align-items: center;
+            cursor: pointer; user-select: none;
+        }
+        .actionBtn:active { transform: scale(0.9); background: #e94560; }
+        .actionBtn.skill { background: rgba(78,204,163,0.8); }
+        .actionBtn.skill:active { background: #4ecca3; }
+        
+        /* 能量条 */
+        .energyBar {
+            position: absolute; bottom: 130px; right: 20px; width: 20px; height: 120px;
+            background: rgba(0,0,0,0.5); border: 2px solid #444; border-radius: 10px;
+            overflow: hidden; z-index: 100;
+        }
+        #energyFill {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            background: linear-gradient(0deg, #4ecca3, #ffd93d);
+            transition: height 0.2s;
+        }
+        .energyLabel {
+            position: absolute; bottom: 130px; right: 45px;
+            color: #fff; font-size: 10px; z-index: 100;
+        }
+        
+        /* 开始界面 */
+        #startScreen {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 500;
+        }
+        #startScreen h1 {
+            font-size: 36px; color: #e94560; margin-bottom: 10px; text-align: center;
+        }
+        #startScreen .subtitle { color: #888; margin-bottom: 30px; font-size: 14px; }
+        .character-preview { font-size: 80px; margin-bottom: 20px; animation: bounce 1s infinite; }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
+        #startScreen .intro {
+            color: #aaa; font-size: 14px; text-align: center; line-height: 2;
+            margin-bottom: 30px; max-width: 300px;
+        }
+        .menuBtn {
+            background: linear-gradient(135deg, #e94560, #ff6b6b);
+            border: none; color: #fff; padding: 15px 50px; font-size: 18px;
+            border-radius: 30px; cursor: pointer; margin: 5px; font-family: inherit;
+            box-shadow: 0 5px 20px rgba(233,69,96,0.5);
+        }
+        .menuBtn:active { transform: scale(0.95); }
+        .menuBtn.secondary { background: rgba(255,255,255,0.1); border: 2px solid #444; box-shadow: none; }
+        
+        /* 关卡选择 */
+        .levelSelector {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+            margin: 20px; max-width: 300px;
+        }
+        .levelBtn {
+            padding: 15px 10px; background: rgba(255,255,255,0.1);
+            border: 2px solid #444; border-radius: 10px; color: #fff;
+            font-size: 12px; cursor: pointer; text-align: center;
+        }
+        .levelBtn.unlocked { border-color: #4ecca3; }
+        .levelBtn.current { background: rgba(233,69,96,0.3); border-color: #e94560; }
+        .levelBtn.locked { opacity: 0.5; }
+        
+        /* 结局界面 */
+        #endScreen {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.9); display: none; flex-direction: column;
+            justify-content: center; align-items: center; z-index: 500;
+        }
+        #endScreen.show { display: flex; }
+        #endScreen h2 { font-size: 32px; margin-bottom: 20px; }
+        #endScreen.win h2 { color: #4ecca3; }
+        #endScreen.lose h2 { color: #e94560; }
+        #endScreen .story {
+            color: #aaa; font-size: 14px; text-align: center; max-width: 300px;
+            line-height: 1.8; margin-bottom: 20px; padding: 0 20px;
+        }
+        #endScreen .finalScore {
+            font-size: 24px; color: #ffd93d; margin-bottom: 10px;
+        }
+        .adHint {
+            color: #666; font-size: 12px; margin: 10px 0;
+        }
+        
+        /* 得分飘字 */
+        .scorePopup {
+            position: absolute; font-size: 24px; font-weight: bold;
+            color: #ffd93d; text-shadow: 0 0 10px #ffd93d;
+            animation: floatUp 1s ease-out forwards; pointer-events: none; z-index: 200;
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            100% { transform: translateY(-50px) scale(1.2); opacity: 0; }
+        }
+        
+        /* 连击特效 */
+        .comboPopup {
+            position: absolute; font-size: 36px; font-weight: bold;
+            color: #e94560; text-shadow: 0 0 20px #e94560;
+            animation: comboAnim 0.5s ease-out forwards; pointer-events: none; z-index: 200;
+        }
+        @keyframes comboAnim {
+            0% { transform: scale(0.5); opacity: 0; }
+            50% { transform: scale(1.5); opacity: 1; }
+            100% { transform: scale(1); opacity: 0; }
+        }
+        
+        /* 广告按钮 */
+        .adBtn {
+            background: linear-gradient(135deg, #ffd93d, #ff8c00);
+            border: none; color: #333; padding: 12px 30px;
+            font-size: 14px; border-radius: 20px; cursor: pointer;
+            margin: 10px; font-family: inherit; font-weight: bold;
+        }
+        
+        /* 教程提示 */
+        .tutorial {
+            position: absolute; bottom: 200px; left: 50%; transform: translateX(-50%);
+            background: rgba(0,0,0,0.8); padding: 10px 20px; border-radius: 10px;
+            color: #fff; font-size: 14px; z-index: 100; text-align: center;
+            animation: fadeInOut 3s ease-in-out infinite;
+        }
+        @keyframes fadeInOut { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas"></canvas>
+        
+        <!-- 顶部状态栏 -->
+        <div class="topBar">
+            <div class="stat">
+                <div class="stat-label">💰 分数</div>
+                <div class="stat-value score" id="scoreDisplay">0</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">🔥 连击</div>
+                <div class="stat-value combo" id="comboDisplay">0</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">⏱️ 剩余</div>
+                <div class="stat-value time" id="timeDisplay">60</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">❤️ 生命</div>
+                <div class="stat-value" id="livesDisplay">3</div>
+            </div>
+        </div>
+        
+        <!-- 任务提示 -->
+        <div class="missionTip" id="missionTip">
+            🎯 任务: <span class="task" id="taskText">逃出办公室!</span>
+        </div>
+        
+        <!-- 虚拟摇杆 -->
+        <div id="joystickArea">
+            <div id="joystick"></div>
+        </div>
+        
+        <!-- 能量条 -->
+        <div class="energyLabel">⚡能量</div>
+        <div class="energyBar">
+            <div id="energyFill" style="height: 0%"></div>
+        </div>
+        
+        <!-- 操作按钮 -->
+        <div class="actionBtns">
+            <div class="actionBtn" id="jumpBtn">⬆️</div>
+            <div class="actionBtn" id="attackBtn">👊</div>
+            <div class="actionBtn" id="slideBtn">⬇️</div>
+            <div class="actionBtn skill" id="skillBtn">💥</div>
+        </div>
+        
+        <!-- 教程 -->
+        <div class="tutorial" id="tutorial">← → 移动 | ⬆️跳跃 | ⬇️滑铲 | 👊攻击</div>
+        
+        <!-- 开始界面 -->
+        <div id="startScreen">
+            <h1>🏃 老板哪里跑</h1>
+            <p class="subtitle">释放压力，疯狂搞破坏!</p>
+            <div class="character-preview">🏃</div>
+            <div class="intro">
+                👤 扮演不想上班的打工人<br>
+                👔 躲避老板的追捕<br>
+                💥 搞破坏，释放压力！<br>
+                🎯 完成恶作剧清单，逃出办公室！
+            </div>
+            <div class="levelSelector" id="levelSelector"></div>
+            <button class="menuBtn" id="startBtn">🎮 开始游戏</button>
+            <button class="menuBtn secondary" id="continueBtn">📺 看广告复活</button>
+        </div>
+        
+        <!-- 结局界面 -->
+        <div id="endScreen">
+            <h2 id="endTitle">游戏结束</h2>
+            <div class="story" id="endStory"></div>
+            <div class="finalScore">🏆 最终分数: <span id="finalScore">0</span></div>
+            <div class="adHint" id="adHint">📺 观看广告可获得奖励!</div>
+            <button class="adBtn" id="adBtn">📺 观看广告 (x2分数)</button>
+            <button class="menuBtn" id="retryBtn">🔄 再来一局</button>
+            <button class="menuBtn secondary" id="menuBtn">📋 返回菜单</button>
+        </div>
+    </div>
+
+    <script>
+        // ==================== 游戏配置 ====================
+        const CONFIG = {
+            GROUND_Y: 0.75,          // 地面Y位置（屏幕比例）
+            GRAVITY: 0.8,
+            JUMP_FORCE: -15,
+            MOVE_SPEED: 6,
+            SLIDE_SPEED: 8,
+            ENEMY_SPAWN_INTERVAL: 2000,
+            LEVEL_TIME: 60,
+            ENERGY_MAX: 100,
+            ENERGY_PER_HIT: 15,
+            ENERGY_PER_DESTROY: 25,
+        };
+        
+        // 关卡配置
+        const LEVELS = [
+            { id: 1, name: "迟到的一天", enemies: 1, enemyTypes: ['hr'], tasks: ['逃离办公室'], boss: false },
+            { id: 2, name: "早会捣乱", enemies: 2, enemyTypes: ['hr', 'colleague'], tasks: ['撞翻3把椅子', '撞倒1个同事'], boss: false },
+            { id: 3, name: "茶水间大作战", enemies: 3, enemyTypes: ['hr', 'colleague', 'smallboss'], tasks: ['完成5次破坏'], boss: false },
+            { id: 4, name: "会议室恶作剧", enemies: 4, enemyTypes: ['hr', 'smallboss', 'security'], tasks: ['糊蛋糕3次'], boss: false },
+            { id: 5, name: "BOSS: 大老板", enemies: 5, enemyTypes: ['bigboss'], tasks: ['撞翻大老板'], boss: true },
+        ];
+        
+        // 敌人配置
+        const ENEMY_TYPES = {
+            hr: { emoji: '👔', speed: 2, name: 'HR', color: '#ff6b6b' },
+            colleague: { emoji: '👨‍💼', speed: 1.5, name: '同事', color: '#888' },
+            smallboss: { emoji: '🧑‍💼', speed: 2.5, name: '小老板', color: '#ffd93d' },
+            security: { emoji: '🦸', speed: 3.5, name: '保安', color: '#4ecca3' },
+            bigboss: { emoji: '👔', speed: 1.5, name: '大老板', color: '#e94560', invincible: true },
+        };
+        
+        // 破坏物配置
+        const OBSTACLES = [
+            { emoji: '🪑', name: '办公椅', points: 10, type: 'destructible' },
+            { emoji: '🪴', name: '盆栽', points: 15, type: 'destructible' },
+            { emoji: '🖥️', name: '显示器', points: 30, type: 'destructible' },
+            { emoji: '📁', name: '文件柜', points: 20, type: 'destructible' },
+            { emoji: '☕', name: '咖啡杯', points: 5, type: 'collectible', skill: 'cake' },
+            { emoji: '🍰', name: '蛋糕', points: 50, type: 'collectible', skill: 'cake' },
+        ];
+        
+        // ==================== 游戏状态 ====================
+        let game = {
+            state: 'menu', // menu, playing, paused, win, lose
+            currentLevel: 1,
+            score: 0,
+            combo: 0,
+            comboTimer: null,
+            lives: 3,
+            energy: 0,
+            timeLeft: 60,
+            timeTimer: null,
+            player: null,
+            enemies: [],
+            obstacles: [],
+            particles: [],
+            unlocks: [1], // 已解锁关卡
+            currentSkin: 'default',
+        };
+        
+        // ==================== Canvas设置 ====================
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        let groundY, canvasWidth, canvasHeight;
+        
+        function resizeCanvas() {
+            canvasWidth = window.innerWidth;
+            canvasHeight = window.innerHeight;
+            canvas.width = canvasWidth;
+            canvas.height = canvasHeight;
+            groundY = canvasHeight * CONFIG.GROUND_Y;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+        
+        // ==================== 玩家类 ====================
+        class Player {
+            constructor() {
+                this.x = 100;
+                this.y = groundY;
+                this.width = 50;
+                this.height = 70;
+                this.velX = 0;
+                this.velY = 0;
+                this.onGround = true;
+                this.sliding = false;
+                this.invincible = false;
+                this.invincibleTimer = null;
+                this.skin = game.currentSkin;
+                this.skinEmoji = '🏃';
+            }
+            
+            update() {
+                // 重力
+                if (!this.onGround) {
+                    this.velY += CONFIG.GRAVITY;
+                }
+                
+                // 移动
+                this.x += this.velX;
+                this.y += this.velY;
+                
+                // 地面碰撞
+                if (this.y >= groundY) {
+                    this.y = groundY;
+                    this.velY = 0;
+                    this.onGround = true;
+                }
+                
+                // 边界
+                if (this.x < 30) this.x = 30;
+                if (this.x > canvasWidth - 30) this.x = canvasWidth - 30;
+                
+                // 滑铲状态
+                if (this.sliding) {
+                    this.height = 35;
+                } else {
+                    this.height = 70;
+                }
+            }
+            
+            jump() {
+                if (this.onGround && !this.sliding) {
+                    this.velY = CONFIG.JUMP_FORCE;
+                    this.onGround = false;
+                }
+            }
+            
+            slide() {
+                if (this.onGround) {
+                    this.sliding = true;
+                    this.velX = CONFIG.SLIDE_SPEED;
+                    setTimeout(() => {
+                        this.sliding = false;
+                        this.velX = 0;
+                    }, 500);
+                }
+            }
+            
+            attack() {
+                // 攻击附近敌人
+                const attackRange = 80;
+                game.enemies.forEach(enemy => {
+                    const dist = Math.abs(enemy.x - this.x);
+                    if (dist < attackRange && !enemy.invincible) {
+                        if (enemy.type === 'bigboss') {
+                            showScorePopup('💥 无敌!', enemy.x, enemy.y - 50, '#e94560');
+                            return;
+                        }
+                        enemy.hp--;
+                        if (enemy.hp <= 0) {
+                            enemy.dead = true;
+                            addScore(enemy.points, enemy.x, enemy.y);
+                            createParticles(enemy.x, enemy.y, enemy.color);
+                            enemy.emoji = '💫';
+                        }
+                    }
+                });
+                
+                // 破坏障碍物
+                game.obstacles.forEach(obs => {
+                    const dist = Math.abs(obs.x - this.x);
+                    if (dist < attackRange && !obs.destroyed) {
+                        obs.destroyed = true;
+                        addScore(obs.points, obs.x, obs.y);
+                        addEnergy(CONFIG.ENERGY_PER_DESTROY);
+                        createParticles(obs.x, obs.y, '#ffd93d');
+                        obs.emoji = '💥';
+                        
+                        // 检查任务
+                        if (obs.type === 'collectible' && obs.skill) {
+                            game.collectedSkills = game.collectedSkills || [];
+                            game.collectedSkills.push(obs.skill);
+                        }
+                    }
+                });
+                
+                addCombo();
+            }
+            
+            useSkill() {
+                if (game.energy >= CONFIG.ENERGY_MAX) {
+                    game.energy = 0;
+                    updateEnergyBar();
+                    
+                    // 释放必杀技 - 蛋糕炸弹
+                    game.enemies.forEach(enemy => {
+                        if (enemy.type !== 'bigboss' && Math.abs(enemy.x - this.x) < 300) {
+                            enemy.hp -= 3;
+                            if (enemy.hp <= 0) {
+                                enemy.dead = true;
+                                addScore(enemy.points * 2, enemy.x, enemy.y);
+                            }
+                        }
+                    });
+                    
+                    // 视觉效果
+                    createParticles(this.x, this.y, '#ff69b4', 30);
+                    showScorePopup('🍰💥蛋糕炸弹!', this.x, this.y - 100, '#ff69b4');
+                }
+            }
+            
+            hit() {
+                if (this.invincible) return;
+                
+                game.lives--;
+                updateLives();
+                this.invincible = true;
+                
+                // 闪烁效果
+                let blinkCount = 0;
+                const blink = setInterval(() => {
+                    this.skinEmoji = blinkCount % 2 === 0 ? '😵' : '🏃';
+                    blinkCount++;
+                    if (blinkCount > 6) {
+                        clearInterval(blink);
+                        this.invincible = false;
+                        this.skinEmoji = '🏃';
+                    }
+                }, 100);
+                
+                if (game.lives <= 0) {
+                    gameOver(false);
+                }
+            }
+            
+            draw() {
+                ctx.save();
+                ctx.font = `${this.height}px Arial`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'bottom';
+                
+                // 阴影
+                ctx.fillStyle = 'rgba(0,0,0,0.3)';
+                ctx.beginPath();
+                ctx.ellipse(this.x, groundY + 5, 20, 8, 0, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // 角色
+                ctx.fillText(this.skinEmoji, this.x, this.y);
+                
+                // 滑铲特效
+                if (this.sliding) {
+                    ctx.font = '30px Arial';
+                    ctx.fillText('💨', this.x - 30, this.y);
+                }
+                
+                ctx.restore();
+            }
+        }
+        
+        // ==================== 敌人类 ====================
+        class Enemy {
+            constructor(type) {
+                const config = ENEMY_TYPES[type];
+                this.type = type;
+                this.emoji = config.emoji;
+                this.speed = config.speed;
+                this.name = config.name;
+                this.color = config.color;
+                this.invincible = config.invincible || false;
+                this.x = canvasWidth + 50;
+                this.y = groundY;
+                this.width = 50;
+                this.height = 70;
+                this.hp = type === 'bigboss' ? 5 : 1;
+                this.points = type === 'bigboss' ? 500 : 50;
+                this.dead = false;
+            }
+            
+            update() {
+                if (this.dead) return;
+                
+                // 向左移动
+                this.x -= this.speed;
+                
+                // 碰撞玩家
+                const dist = Math.abs(this.x - game.player.x);
+                if (dist < 40 && !game.player.invincible) {
+                    game.player.hit();
+                }
+            }
+            
+            draw() {
+                if (this.dead) return;
+                
+                ctx.save();
+                ctx.font = `${this.height}px Arial`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'bottom';
+                ctx.fillText(this.emoji, this.x, this.y);
+                
+                // 无敌标记
+                if (this.invincible) {
+                    ctx.font = '20px Arial';
+                    ctx.fillText('💪', this.x, this.y - 80);
+                }
+                
+                ctx.restore();
+            }
+        }
+        
+        // ==================== 障碍物类 ====================
+        class Obstacle {
+            constructor() {
+                const config = OBSTACLES[Math.floor(Math.random() * OBSTACLES.length)];
+                Object.assign(this, config);
+                this.x = Math.random() * (canvasWidth - 200) + 100;
+                this.y = groundY;
+                this.destroyed = false;
+            }
+            
+            draw() {
+                if (this.destroyed) return;
+                
+                ctx.save();
+                ctx.font = '50px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'bottom';
+                ctx.fillText(this.emoji, this.x, this.y);
+                ctx.restore();
+            }
+        }
+        
+        // ==================== 粒子类 ====================
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.color = color;
+                this.velX = (Math.random() - 0.5) * 10;
+                this.velY = (Math.random() - 0.5) * 10 - 5;
+                this.life = 30;
+            }
+            
+            update() {
+                this.x += this.velX;
+                this.y += this.velY;
+                this.velY += 0.3;
+                this.life--;
+            }
+            
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = this.life / 30;
+                ctx.font = '20px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillStyle = this.color;
+                ctx.fillText('✨', this.x, this.y);
+                ctx.restore();
+            }
+        }
+        
+        // ==================== 游戏函数 ====================
+        function createParticles(x, y, color, count = 10) {
+            for (let i = 0; i < count; i++) {
+                game.particles.push(new Particle(x, y, color));
+            }
+        }
+        
+        function addScore(points, x, y) {
+            const comboBonus = Math.min(game.combo, 10);
+            const total = points * (1 + comboBonus * 0.1);
+            game.score += Math.floor(total);
+            updateScore();
+            showScorePopup(`+${Math.floor(total)}`, x, y);
+        }
+        
+        function addCombo() {
+            game.combo++;
+            updateCombo();
+            
+            clearTimeout(game.comboTimer);
+            game.comboTimer = setTimeout(() => {
+                game.combo = 0;
+                updateCombo();
+            }, 2000);
+        }
+        
+        function addEnergy(amount) {
+            game.energy = Math.min(CONFIG.ENERGY_MAX, game.energy + amount);
+            updateEnergyBar();
+        }
+        
+        function showScorePopup(text, x, y, color = '#ffd93d') {
+            const popup = document.createElement('div');
+            popup.className = 'scorePopup';
+            popup.textContent = text;
+            popup.style.left = x + 'px';
+            popup.style.top = y + 'px';
+            popup.style.color = color;
+            document.getElementById('gameContainer').appendChild(popup);
+            setTimeout(() => popup.remove(), 1000);
+        }
+        
+        function spawnEnemy() {
+            const level = LEVELS[game.currentLevel - 1];
+            const type = level.enemyTypes[Math.floor(Math.random() * level.enemyTypes.length)];
+            game.enemies.push(new Enemy(type));
+        }
+        
+        // ==================== UI更新 ====================
+        function updateScore() { document.getElementById('scoreDisplay').textContent = game.score; }
+        function updateCombo() { document.getElementById('comboDisplay').textContent = game.combo; }
+        function updateTime() { document.getElementById('timeDisplay').textContent = game.timeLeft; }
+        function updateLives() { document.getElementById('livesDisplay').textContent = '❤️'.repeat(game.lives); }
+        function updateEnergyBar() { document.getElementById('energyFill').style.height = game.energy + '%'; }
+        function updateTask() {
+            const level = LEVELS[game.currentLevel - 1];
+            document.getElementById('taskText').textContent = level.tasks[0] || '逃离办公室!';
+        }
+        
+        // ==================== 虚拟摇杆 ====================
+        const joystickArea = document.getElementById('joystickArea');
+        const joystick = document.getElementById('joystick');
+        let joystickActive = false;
+        let joystickCenter = { x: 0, y: 0 };
+        
+        function handleJoystickStart(e) {
+            e.preventDefault();
+            const touch = e.touches ? e.touches[0] : e;
+            const rect = joystickArea.getBoundingClientRect();
+            joystickCenter = {
+                x: rect.left + rect.width / 2,
+                y: rect.top + rect.height / 2
+            };
+            joystickActive = true;
+            handleJoystickMove(e);
+        }
+        
+        function handleJoystickMove(e) {
+            if (!joystickActive || !game.player) return;
+            e.preventDefault();
+            
+            const touch = e.touches ? e.touches[0] : e;
+            let dx = touch.clientX - joystickCenter.x;
+            let dy = touch.clientY - joystickCenter.y;
+            
+            const maxDist = 40;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist > maxDist) {
+                dx = dx / dist * maxDist;
+                dy = dy / dist * maxDist;
+            }
+            
+            joystick.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+            
+            // 移动玩家
+            if (Math.abs(dx) > 10) {
+                game.player.velX = dx > 0 ? CONFIG.MOVE_SPEED : -CONFIG.MOVE_SPEED;
+            } else {
+                game.player.velX = 0;
+            }
+        }
+        
+        function handleJoystickEnd() {
+            joystickActive = false;
+            joystick.style.transform = 'translate(-50%, -50%)';
+            if (game.player) game.player.velX = 0;
+        }
+        
+        joystickArea.addEventListener('touchstart', handleJoystickStart, { passive: false });
+        joystickArea.addEventListener('touchmove', handleJoystickMove, { passive: false });
+        joystickArea.addEventListener('touchend', handleJoystickEnd);
+        
+        // 键盘支持（测试用）
+        document.addEventListener('keydown', e => {
+            if (!game.player) return;
+            if (e.key === 'ArrowLeft') game.player.velX = -CONFIG.MOVE_SPEED;
+            if (e.key === 'ArrowRight') game.player.velX = CONFIG.MOVE_SPEED;
+            if (e.key === 'ArrowUp') game.player.jump();
+            if (e.key === 'ArrowDown') game.player.slide();
+            if (e.key === ' ') game.player.attack();
+            if (e.key === 'Shift') game.player.useSkill();
+        });
+        document.addEventListener('keyup', e => {
+            if (!game.player) return;
+            if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') game.player.velX = 0;
+        });
+        
+        // 操作按钮
+        document.getElementById('jumpBtn').addEventListener('touchstart', e => { e.preventDefault(); game.player?.jump(); });
+        document.getElementById('slideBtn').addEventListener('touchstart', e => { e.preventDefault(); game.player?.slide(); });
+        document.getElementById('attackBtn').addEventListener('touchstart', e => { e.preventDefault(); game.player?.attack(); addEnergy(CONFIG.ENERGY_PER_HIT); });
+        document.getElementById('skillBtn').addEventListener('touchstart', e => { e.preventDefault(); game.player?.useSkill(); });
+        
+        // ==================== 游戏流程 ====================
+        function startGame() {
+            document.getElementById('startScreen').style.display = 'none';
+            document.getElementById('endScreen').classList.remove('show');
+            
+            game.state = 'playing';
+            game.score = 0;
+            game.combo = 0;
+            game.lives = 3;
+            game.energy = 0;
+            game.timeLeft = CONFIG.LEVEL_TIME;
+            game.enemies = [];
+            game.obstacles = [];
+            game.particles = [];
+            game.collectedSkills = [];
+            
+            game.player = new Player();
+            
+            // 生成障碍物
+            for (let i = 0; i < 5; i++) {
+                game.obstacles.push(new Obstacle());
+            }
+            
+            updateScore();
+            updateCombo();
+            updateTime();
+            updateLives();
+            updateEnergyBar();
+            updateTask();
+            
+            // 隐藏教程
+            document.getElementById('tutorial').style.display = 'none';
+            
+            // 开始计时
+            clearInterval(game.timeTimer);
+            game.timeTimer = setInterval(() => {
+                game.timeLeft--;
+                updateTime();
+                if (game.timeLeft <= 0) {
+                    gameOver(true);
+                }
+            }, 1000);
+            
+            // 开始生成敌人
+            clearInterval(game.enemyTimer);
+            game.enemyTimer = setInterval(spawnEnemy, CONFIG.ENEMY_SPAWN_INTERVAL * (1 - game.currentLevel * 0.1));
+            
+            // 开始游戏循环
+            requestAnimationFrame(gameLoop);
+        }
+        
+        function gameOver(win) {
+            game.state = win ? 'win' : 'lose';
+            clearInterval(game.timeTimer);
+            clearInterval(game.enemyTimer);
+            
+            const endScreen = document.getElementById('endScreen');
+            endScreen.classList.remove('win', 'lose');
+            endScreen.classList.add(win ? 'win' : 'lose');
+            
+            document.getElementById('endTitle').textContent = win ? '🎉 成功逃脱!' : '💀 被抓到了!';
+            
+            if (win) {
+                const stories = [
+                    '🏃小明一路狂奔冲出公司大门！\n\n👔老板们气喘吁吁追不上...\n\n😈 "小明！你给我回来！这个月工资没了！"\n\n🏃 "我不干啦！！！"',
+                    '💨小明从消防通道溜走...\n\n👔HR在后面大喊："小明！"\n\n🏃头也不回，消失在人群中',
+                    '🚀小明骑上共享单车...\n\n🚗老板们开车追...\n\n🏃小明拐进小巷，完美逃脱！',
+                ];
+                document.getElementById('endStory').textContent = stories[Math.floor(Math.random() * stories.length)];
+                
+                // 解锁下一关
+                if (game.currentLevel < LEVELS.length && !game.unlocks.includes(game.currentLevel + 1)) {
+                    game.unlocks.push(game.currentLevel + 1);
+                    document.getElementById('endStory').textContent += '\n\n🔓 解锁新关卡!';
+                }
+            } else {
+                const stories = [
+                    '🧑‍💼HR一个飞扑抓住了小明...\n\n😱 "小明！你被捕了！"\n\n💼 "扣你三个月工资！"\n\n💀 GAME OVER',
+                    '👔小老板堵住了去路...\n\n😰 "小明，你想去哪？"\n\n💀 逃跑失败...',
+                    '🦸保安一个扫堂腿...\n\n🤸小明被按倒在地\n\n👮 "别动！呼叫支援！"\n\n💀 GAME OVER',
+                ];
+                document.getElementById('endStory').textContent = stories[Math.floor(Math.random() * stories.length)];
+            }
+            
+            document.getElementById('finalScore').textContent = game.score;
+            endScreen.classList.add('show');
+        }
+        
+        // ==================== 游戏循环 ====================
+        function gameLoop() {
+            if (game.state !== 'playing') return;
+            
+            // 清屏
+            ctx.fillStyle = '#1a1a2e';
+            ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+            
+            // 绘制背景
+            ctx.fillStyle = '#16213e';
+            ctx.fillRect(0, 0, canvasWidth, groundY + 50);
+            
+            // 绘制地面
+            ctx.fillStyle = '#0f3460';
+            ctx.fillRect(0, groundY, canvasWidth, canvasHeight - groundY);
+            
+            // 地面纹理
+            ctx.strokeStyle = '#1a4a7a';
+            ctx.lineWidth = 2;
+            for (let i = 0; i < canvasWidth; i += 50) {
+                ctx.beginPath();
+                ctx.moveTo(i, groundY);
+                ctx.lineTo(i + 25, groundY + 10);
+                ctx.stroke();
+            }
+            
+            // 更新和绘制障碍物
+            game.obstacles.forEach(obs => obs.draw());
+            
+            // 更新和绘制敌人
+            game.enemies = game.enemies.filter(e => !e.dead && e.x > -50);
+            game.enemies.forEach(enemy => {
+                enemy.update();
+                enemy.draw();
+            });
+            
+            // 更新和绘制玩家
+            game.player.update();
+            game.player.draw();
+            
+            // 更新和绘制粒子
+            game.particles = game.particles.filter(p => p.life > 0);
+            game.particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            
+            // 绘制终点线
+            ctx.fillStyle = '#4ecca3';
+            ctx.fillRect(canvasWidth - 10, 0, 10, groundY);
+            ctx.font = '20px Arial';
+            ctx.save();
+            ctx.translate(canvasWidth - 30, groundY / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText('🏁 终点', 0, 0);
+            ctx.restore();
+            
+            // 到达终点
+            if (game.player.x >= canvasWidth - 30) {
+                gameOver(true);
+                return;
+            }
+            
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // ==================== 关卡选择 ====================
+        function initLevelSelector() {
+            const selector = document.getElementById('levelSelector');
+            selector.innerHTML = '';
+            
+            LEVELS.forEach(level => {
+                const btn = document.createElement('div');
+                btn.className = 'levelBtn';
+                btn.textContent = `第${level.id}关\n${level.name}`;
+                
+                if (game.unlocks.includes(level.id)) {
+                    btn.classList.add('unlocked');
+                    btn.addEventListener('click', () => {
+                        game.currentLevel = level.id;
+                        document.querySelectorAll('.levelBtn').forEach(b => b.classList.remove('current'));
+                        btn.classList.add('current');
+                    });
+                    if (level.id === game.currentLevel) btn.classList.add('current');
+                } else {
+                    btn.classList.add('locked');
+                    btn.textContent = `🔒 第${level.id}关`;
+                }
+                
+                selector.appendChild(btn);
+            });
+        }
+        
+        // ==================== 界面按钮 ====================
+        document.getElementById('startBtn').addEventListener('click', startGame);
+        document.getElementById('continueBtn').addEventListener('click', () => {
+            // 模拟看广告
+            document.getElementById('continueBtn').textContent = '📺 观看中...';
+            setTimeout(() => {
+                game.lives = 3;
+                updateLives();
+                document.getElementById('continueBtn').textContent = '📺 看广告复活';
+                startGame();
+            }, 1500);
+        });
+        document.getElementById('retryBtn').addEventListener('click', startGame);
+        document.getElementById('menuBtn').addEventListener('click', () => {
+            document.getElementById('endScreen').classList.remove('show');
+            document.getElementById('startScreen').style.display = 'flex';
+            initLevelSelector();
+        });
+        document.getElementById('adBtn').addEventListener('click', () => {
+            // 模拟看广告获得双倍分数
+            document.getElementById('adBtn').textContent = '📺 观看中...';
+            setTimeout(() => {
+                game.score *= 2;
+                document.getElementById('finalScore').textContent = game.score;
+                document.getElementById('adBtn').textContent = '✅ 已获得双倍分数!';
+                setTimeout(() => {
+                    document.getElementById('adBtn').textContent = '📺 观看广告 (x2分数)';
+                }, 2000);
+            }, 1500);
+        });
+        
+        // ==================== 初始化 ====================
+        initLevelSelector();
+    </script>
+</body>
+</html>
