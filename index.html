@@ -3,126 +3,97 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>🏃 老板哪里跑 - 豪华版</title>
+    <title>🏃 老板哪里跑 - 平台版</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html, body { width: 100%; height: 100%; overflow: hidden; touch-action: none; user-select: none; }
-        body { font-family: 'Microsoft YaHei', sans-serif; background: #1a1a2e; }
+        body { font-family: 'Microsoft YaHei', sans-serif; }
         
         #gameContainer { position: relative; width: 100%; height: 100%; overflow: hidden; }
         
-        /* 顶部状态栏 */
         .topBar {
-            position: absolute; top: 0; left: 0; right: 0; height: 45px;
-            background: rgba(0,0,0,0.9); display: flex; justify-content: space-around; align-items: center;
-            padding: 0 5px; z-index: 100;
+            position: absolute; top: 0; left: 0; right: 0; height: 40px;
+            background: rgba(0,0,0,0.92); display: flex; justify-content: space-around; align-items: center;
+            padding: 0 3px; z-index: 100;
         }
         .stat { text-align: center; }
-        .stat-label { font-size: 8px; color: #888; }
-        .stat-value { font-size: 14px; font-weight: bold; color: #fff; }
+        .stat-label { font-size: 6px; color: #888; }
+        .stat-value { font-size: 12px; font-weight: bold; color: #fff; }
         .stat-value.score { color: #ffd93d; }
         .stat-value.combo { color: #e94560; }
-        .stat-value.time { color: #4ecca3; }
         .stat-value.lives { color: #ff6b6b; }
+        .stat-value.level { color: #4ecca3; }
         
-        /* 进度条 */
-        .progress-container {
-            position: absolute; top: 45px; left: 0; right: 0; height: 4px;
-            background: rgba(0,0,0,0.5); z-index: 100;
-        }
-        #levelProgress { height: 100%; background: linear-gradient(90deg, #e94560, #ffd93d); transition: width 0.3s; }
-        
-        /* Boss血条 */
-        .bossBar {
-            position: absolute; top: 55px; left: 50%; transform: translateX(-50%);
-            width: 70%; max-width: 250px; height: 18px;
-            background: rgba(0,0,0,0.8); border: 2px solid #e94560; border-radius: 9px;
-            display: none; z-index: 100;
-        }
-        .bossBar.show { display: block; }
-        .bossName { text-align: center; color: #e94560; font-size: 10px; margin-bottom: 3px; }
-        #bossHealth { height: 100%; background: linear-gradient(90deg, #e94560, #ff6b6b); border-radius: 7px; }
-        
-        /* 游戏画布 */
         #gameCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
         
-        /* 任务提示 */
         .missionTip {
-            position: absolute; top: 80px; left: 50%; transform: translateX(-50%);
-            background: rgba(0,0,0,0.8); padding: 5px 12px; border-radius: 12px;
-            color: #fff; font-size: 10px; z-index: 100; white-space: nowrap;
+            position: absolute; top: 46px; left: 50%; transform: translateX(-50%);
+            background: rgba(0,0,0,0.8); padding: 3px 8px; border-radius: 8px;
+            color: #fff; font-size: 8px; z-index: 100; white-space: nowrap;
         }
         .missionTip .task { color: #ffd93d; }
         
-        /* 道具栏 */
         .itemBar {
-            position: absolute; top: 48px; right: 8px;
-            display: flex; flex-direction: column; gap: 4px; z-index: 100;
+            position: absolute; top: 43px; right: 5px;
+            display: flex; flex-direction: column; gap: 2px; z-index: 100;
         }
         .itemSlot {
-            width: 32px; height: 32px;
+            width: 28px; height: 28px;
             background: rgba(0,0,0,0.7); border: 2px solid #444;
-            border-radius: 6px; display: flex; justify-content: center; align-items: center;
-            font-size: 18px; cursor: pointer;
+            border-radius: 4px; display: flex; justify-content: center; align-items: center;
+            font-size: 15px; cursor: pointer;
         }
         .itemSlot.active { border-color: #ffd93d; background: rgba(255,217,61,0.2); }
         
-        /* 虚拟摇杆 */
         #joystickArea {
-            position: absolute; bottom: 120px; left: 15px; width: 100px; height: 100px;
+            position: absolute; bottom: 110px; left: 12px; width: 95px; height: 95px;
             background: rgba(255,255,255,0.1); border-radius: 50%; border: 3px solid rgba(255,255,255,0.2);
             z-index: 100;
         }
         #joystick {
-            position: absolute; width: 40px; height: 40px;
+            position: absolute; width: 38px; height: 38px;
             background: rgba(233,69,96,0.8); border-radius: 50%;
             top: 50%; left: 50%; transform: translate(-50%, -50%);
         }
         
-        /* 操作按钮 */
         .actionBtns {
-            position: absolute; bottom: 15px; right: 15px;
-            display: grid; grid-template-columns: repeat(2, 50px); gap: 6px;
+            position: absolute; bottom: 12px; right: 12px;
+            display: grid; grid-template-columns: repeat(2, 45px); gap: 5px;
             z-index: 100;
         }
         .actionBtn {
-            width: 50px; height: 50px; border-radius: 50%;
-            background: rgba(233,69,96,0.8); border: 3px solid #fff;
-            color: #fff; font-size: 20px; display: flex; justify-content: center; align-items: center;
+            width: 45px; height: 45px; border-radius: 50%;
+            background: rgba(233,69,96,0.8); border: 2px solid #fff;
+            color: #fff; font-size: 16px; display: flex; justify-content: center; align-items: center;
         }
         .actionBtn:active { transform: scale(0.9); background: #e94560; }
         .actionBtn.skill { background: rgba(78,204,163,0.8); border-color: #4ecca3; }
-        .actionBtn.skill:active { background: #4ecca3; }
         
-        /* 能量条 */
         .energyBar {
-            position: absolute; bottom: 120px; right: 20px; width: 16px; height: 100px;
-            background: rgba(0,0,0,0.6); border: 2px solid #444; border-radius: 8px;
+            position: absolute; bottom: 110px; right: 16px; width: 14px; height: 95px;
+            background: rgba(0,0,0,0.6); border: 2px solid #444; border-radius: 7px;
             overflow: hidden; z-index: 100;
         }
         #energyFill { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(0deg, #4ecca3, #ffd93d); }
-        .energyLabel { position: absolute; bottom: 120px; right: 40px; color: #fff; font-size: 8px; z-index: 100; }
+        .energyLabel { position: absolute; bottom: 110px; right: 34px; color: #fff; font-size: 6px; z-index: 100; }
         
-        /* 开始界面 */
         #startScreen {
             position: absolute; top: 0; left: 0; right: 0; bottom: 0;
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             display: flex; flex-direction: column; justify-content: center; align-items: center;
-            z-index: 500; overflow-y: auto; padding: 20px;
+            z-index: 500; overflow-y: auto; padding: 12px;
         }
-        #startScreen h1 { font-size: 26px; color: #e94560; margin-bottom: 3px; text-shadow: 0 0 20px rgba(233,69,96,0.5); }
-        #startScreen .subtitle { color: #ffd93d; margin-bottom: 12px; font-size: 11px; }
-        .character-preview { font-size: 60px; margin-bottom: 12px; animation: bounce 1s infinite; }
-        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
-        #startScreen .intro { color: #aaa; font-size: 11px; text-align: center; line-height: 1.7; margin-bottom: 12px; max-width: 260px; }
+        #startScreen h1 { font-size: 22px; color: #e94560; margin-bottom: 2px; text-shadow: 0 0 12px rgba(233,69,96,0.5); }
+        #startScreen .subtitle { color: #4ecca3; margin-bottom: 8px; font-size: 9px; }
+        .character-preview { font-size: 50px; margin-bottom: 8px; animation: bounce 1s infinite; }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+        #startScreen .intro { color: #aaa; font-size: 9px; text-align: center; line-height: 1.5; margin-bottom: 8px; max-width: 220px; }
         
-        /* 关卡选择 */
-        .chapterTitle { color: #4ecca3; font-size: 12px; margin: 8px 0 4px; font-weight: bold; }
-        .levelSelector { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin: 8px; max-width: 280px; }
+        .levelSelector { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; margin: 6px; max-width: 240px; }
         .levelBtn {
-            width: 50px; height: 50px;
+            width: 42px; height: 42px;
             background: rgba(255,255,255,0.1); border: 2px solid #444;
-            border-radius: 8px; color: #fff; font-size: 10px;
+            border-radius: 6px; color: #fff; font-size: 8px;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             cursor: pointer;
         }
@@ -130,101 +101,67 @@
         .levelBtn.current { background: rgba(233,69,96,0.3); border-color: #e94560; }
         .levelBtn.locked { opacity: 0.4; }
         .levelBtn.boss { background: rgba(233,69,96,0.3); border-color: #e94560; }
-        .levelBtn .level-num { font-size: 16px; font-weight: bold; }
+        .levelBtn .level-num { font-size: 13px; font-weight: bold; }
         
         .menuBtn {
             background: linear-gradient(135deg, #e94560, #ff6b6b);
-            border: none; color: #fff; padding: 10px 35px; font-size: 14px;
-            border-radius: 22px; cursor: pointer; margin: 6px; font-family: inherit;
-            box-shadow: 0 4px 12px rgba(233,69,96,0.4);
+            border: none; color: #fff; padding: 8px 28px; font-size: 12px;
+            border-radius: 18px; cursor: pointer; margin: 4px; font-family: inherit;
+            box-shadow: 0 3px 8px rgba(233,69,96,0.4);
         }
         .menuBtn:active { transform: scale(0.95); }
-        .menuBtn.secondary { background: rgba(255,255,255,0.1); border: 2px solid #444; box-shadow: none; font-size: 12px; padding: 8px 25px; }
+        .menuBtn.secondary { background: rgba(255,255,255,0.1); border: 2px solid #444; box-shadow: none; font-size: 10px; padding: 6px 18px; }
         
-        /* 结局界面 */
         #endScreen {
             position: absolute; top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(0,0,0,0.95); display: none; flex-direction: column;
             justify-content: center; align-items: center; z-index: 500;
         }
         #endScreen.show { display: flex; }
-        #endScreen h2 { font-size: 24px; margin-bottom: 12px; }
+        #endScreen h2 { font-size: 20px; margin-bottom: 8px; }
         #endScreen.win h2 { color: #4ecca3; }
         #endScreen.lose h2 { color: #e94560; }
-        #endScreen .story { color: #aaa; font-size: 12px; text-align: center; max-width: 260px; line-height: 1.7; margin-bottom: 12px; padding: 0 20px; }
-        #endScreen .stats { color: #ffd93d; font-size: 14px; margin-bottom: 8px; }
-        .stars { font-size: 28px; margin: 8px 0; }
+        #endScreen .story { color: #aaa; font-size: 10px; text-align: center; max-width: 220px; line-height: 1.5; margin-bottom: 8px; padding: 0 12px; }
+        #endScreen .stats { color: #ffd93d; font-size: 12px; margin-bottom: 5px; }
+        .stars { font-size: 22px; margin: 5px 0; }
         
-        /* 得分飘字 */
-        .scorePopup {
-            position: absolute; font-size: 20px; font-weight: bold;
-            color: #ffd93d; text-shadow: 0 0 8px #ffd93d;
-            animation: floatUp 0.7s ease-out forwards; pointer-events: none; z-index: 200;
-        }
-        @keyframes floatUp {
-            0% { transform: translateY(0) scale(1); opacity: 1; }
-            100% { transform: translateY(-35px) scale(1.2); opacity: 0; }
-        }
+        .scorePopup { position: absolute; font-size: 16px; font-weight: bold; color: #ffd93d; text-shadow: 0 0 5px #ffd93d; animation: floatUp 0.5s ease-out forwards; pointer-events: none; z-index: 200; }
+        @keyframes floatUp { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-25px) scale(1.1); opacity: 0; } }
         
-        /* 连击特效 */
-        .comboPopup {
-            position: absolute; font-size: 28px; font-weight: bold;
-            color: #e94560; text-shadow: 0 0 12px #e94560;
-            animation: comboAnim 0.4s ease-out forwards; pointer-events: none; z-index: 200;
-        }
-        @keyframes comboAnim {
-            0% { transform: scale(0.5); opacity: 0; }
-            50% { transform: scale(1.4); opacity: 1; }
-            100% { transform: scale(1); opacity: 0; }
-        }
+        .comboPopup { position: absolute; font-size: 20px; font-weight: bold; color: #e94560; text-shadow: 0 0 8px #e94560; animation: comboAnim 0.25s ease-out forwards; pointer-events: none; z-index: 200; }
+        @keyframes comboAnim { 0% { transform: scale(0.5); opacity: 0; } 50% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(1); opacity: 0; } }
         
-        /* 特效提示 */
         .effectHint {
-            position: absolute; top: 110px; left: 50%; transform: translateX(-50%);
+            position: absolute; top: 68px; left: 50%; transform: translateX(-50%);
             background: linear-gradient(135deg, #4ecca3, #38b2ac);
-            padding: 6px 15px; border-radius: 15px;
-            color: #fff; font-size: 12px; font-weight: bold;
-            animation: pulse 0.4s ease-out; z-index: 150;
+            padding: 4px 10px; border-radius: 10px;
+            color: #fff; font-size: 10px; font-weight: bold;
+            animation: pulse 0.25s ease-out; z-index: 150;
         }
-        @keyframes pulse {
-            0% { transform: translateX(-50%) scale(0.8); opacity: 0; }
-            50% { transform: translateX(-50%) scale(1.1); }
-            100% { transform: translateX(-50%) scale(1); opacity: 1; }
-        }
+        @keyframes pulse { 0% { transform: translateX(-50%) scale(0.8); opacity: 0; } 50% { transform: translateX(-50%) scale(1.05); } 100% { transform: translateX(-50%) scale(1); opacity: 1; } }
         
-        /* 速度特效 */
-        .speedEffect { position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; z-index: 60; }
-        .speedEffect.fast { animation: fastPulse 0.25s infinite; }
-        .speedEffect.invincible { animation: invincibleGlow 0.15s infinite; }
-        @keyframes fastPulse { 0%, 100% { box-shadow: inset 0 0 40px rgba(78,204,163,0.3); } }
-        @keyframes invincibleGlow { 0%, 100% { box-shadow: inset 0 0 40px rgba(255,217,61,0.5); } }
-        
-        /* 暂停按钮 */
         #pauseBtn {
-            position: absolute; top: 48px; left: 8px;
+            position: absolute; top: 43px; left: 5px;
             background: rgba(0,0,0,0.6); border: 2px solid #fff;
-            color: #fff; width: 32px; height: 32px; border-radius: 50%;
-            font-size: 16px; cursor: pointer; z-index: 100;
+            color: #fff; width: 28px; height: 28px; border-radius: 50%;
+            font-size: 13px; cursor: pointer; z-index: 100;
         }
         
-        /* 广告按钮 */
         .adBtn {
             background: linear-gradient(135deg, #ffd93d, #ff8c00);
-            border: none; color: #333; padding: 8px 20px;
-            font-size: 12px; border-radius: 15px; cursor: pointer;
-            margin: 6px; font-family: inherit; font-weight: bold;
+            border: none; color: #333; padding: 6px 15px;
+            font-size: 10px; border-radius: 10px; cursor: pointer;
+            margin: 4px; font-family: inherit; font-weight: bold;
         }
         
-        /* 教程提示 */
         .tutorial {
-            position: absolute; bottom: 180px; left: 50%; transform: translateX(-50%);
-            background: rgba(0,0,0,0.8); padding: 6px 12px; border-radius: 6px;
-            color: #fff; font-size: 10px; z-index: 100; text-align: center;
+            position: absolute; bottom: 165px; left: 50%; transform: translateX(-50%);
+            background: rgba(0,0,0,0.8); padding: 4px 8px; border-radius: 4px;
+            color: #fff; font-size: 8px; z-index: 100; text-align: center;
             animation: fadeInOut 3s ease-in-out infinite;
         }
         @keyframes fadeInOut { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
         
-        /* 暂停界面 */
         #pauseScreen { display:none; position:absolute; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.9); z-index:400; flex-direction:column; justify-content:center; align-items:center; }
     </style>
 </head>
@@ -232,48 +169,29 @@
     <div id="gameContainer">
         <canvas id="gameCanvas"></canvas>
         
-        <!-- 顶部状态栏 -->
         <div class="topBar">
+            <div class="stat"><div class="stat-label">关</div><div class="stat-value level" id="levelDisplay">1</div></div>
             <div class="stat"><div class="stat-label">💰</div><div class="stat-value score" id="scoreDisplay">0</div></div>
             <div class="stat"><div class="stat-label">🔥</div><div class="stat-value combo" id="comboDisplay">0</div></div>
-            <div class="stat"><div class="stat-label">⏱️</div><div class="stat-value time" id="timeDisplay">60</div></div>
             <div class="stat"><div class="stat-label">❤️</div><div class="stat-value lives" id="livesDisplay">3</div></div>
             <div class="stat"><div class="stat-label">⭐</div><div class="stat-value" id="starsDisplay">0</div></div>
         </div>
         
-        <!-- 进度条 -->
-        <div class="progress-container"><div id="levelProgress" style="width: 0%"></div></div>
+        <div class="missionTip">🎯 <span class="task" id="taskText">找钥匙→传送门!</span></div>
         
-        <!-- Boss血条 -->
-        <div class="bossBar" id="bossBar">
-            <div class="bossName" id="bossName">👔 BOSS</div>
-            <div id="bossHealth" style="width: 100%"></div>
-        </div>
-        
-        <!-- 任务提示 -->
-        <div class="missionTip">🎯 <span class="task" id="taskText">逃出办公室!</span></div>
-        
-        <!-- 道具栏 -->
         <div class="itemBar">
             <div class="itemSlot" id="item1"></div>
             <div class="itemSlot" id="item2"></div>
             <div class="itemSlot" id="item3"></div>
         </div>
         
-        <!-- 暂停按钮 -->
         <button id="pauseBtn">⏸️</button>
         
-        <!-- 速度特效 -->
-        <div class="speedEffect" id="speedEffect"></div>
-        
-        <!-- 虚拟摇杆 -->
         <div id="joystickArea"><div id="joystick"></div></div>
         
-        <!-- 能量条 -->
         <div class="energyLabel">⚡</div>
         <div class="energyBar"><div id="energyFill" style="height: 0%"></div></div>
         
-        <!-- 操作按钮 -->
         <div class="actionBtns">
             <div class="actionBtn" id="jumpBtn">⬆️</div>
             <div class="actionBtn" id="attackBtn">👊</div>
@@ -281,197 +199,383 @@
             <div class="actionBtn skill" id="skillBtn">💥</div>
         </div>
         
-        <!-- 教程 -->
-        <div class="tutorial" id="tutorial">← → 移动 | ⬆️跳 | ⬇️滑铲 | 👊攻击</div>
+        <div class="tutorial" id="tutorial">← → 移动 | ⬆️跳 | ⬇️下跳 | 👊攻击</div>
         
-        <!-- 开始界面 -->
         <div id="startScreen">
             <h1>🏃 老板哪里跑</h1>
-            <p class="subtitle">⭐ 豪华版 - 18关卡挑战 ⭐</p>
+            <p class="subtitle">🏃 平台跳跃版</p>
             <div class="character-preview">🏃</div>
             <div class="intro">
-                👤 扮演不想上班的打工人<br>
-                👔 躲避老板追捕，完成破坏任务<br>
-                💥 收集道具，释放你的压力！<br>
-                🎯 击败每个章节的BOSS！
+                🏃 平台跳跃躲避老板<br>
+                🔑 收集钥匙解锁传送门<br>
+                ⬆️⬇️ 上下跳跃穿越台阶<br>
+                👔 击败敌人冲向终点！
             </div>
             <div class="levelSelector" id="levelSelector"></div>
             <button class="menuBtn" id="startBtn">🎮 开始游戏</button>
             <button class="menuBtn secondary" id="resetBtn">🔄 重置</button>
         </div>
         
-        <!-- 结局界面 -->
         <div id="endScreen">
             <h2 id="endTitle">游戏结束</h2>
             <div class="stars" id="starsEarned">⭐⭐⭐</div>
             <div class="story" id="endStory"></div>
             <div class="stats">🏆 <span id="finalScore">0</span>分</div>
-            <div class="stats">🔥 最高连击: <span id="maxCombo">0</span></div>
-            <button class="adBtn" id="adBtn">📺 广告 x2分数</button>
+            <div class="stats">🔥 <span id="maxCombo">0</span>连击</div>
+            <button class="adBtn" id="adBtn">📺 x2分数</button>
             <button class="menuBtn" id="retryBtn">🔄 再来</button>
             <button class="menuBtn secondary" id="menuBtn">📋 菜单</button>
         </div>
         
-        <!-- 暂停界面 -->
         <div id="pauseScreen">
-            <h2 style="color:#fff; margin-bottom:15px;">⏸️ 暂停</h2>
+            <h2 style="color:#fff; margin-bottom:10px;">⏸️ 暂停</h2>
             <button class="menuBtn" id="resumeBtn">▶️ 继续</button>
             <button class="menuBtn secondary" id="quitBtn">🏠 菜单</button>
         </div>
     </div>
 
     <script>
-        // ==================== 游戏配置 ====================
+        // ==================== 配置 ====================
         const CONFIG = {
-            GROUND_Y: 0.78,
-            GRAVITY: 0.85,
-            JUMP_FORCE: -15,
-            MOVE_SPEED: 5.5,
-            SLIDE_SPEED: 9,
-            FAST_SPEED: 11,
+            GRAVITY: 0.55,
+            JUMP_FORCE: -13,
+            MOVE_SPEED: 4.5,
+            FALL_SPEED: 10,
             ENERGY_MAX: 100,
-            ENERGY_PER_HIT: 12,
-            COMBO_TIMEOUT: 1200,
+            ENERGY_PER_HIT: 10,
+            COMBO_TIMEOUT: 1000,
         };
         
-        // 章节配置 - 18个关卡
-        const CHAPTERS = [
-            { id: 1, name: "逃出办公室", levels: [
-                { id: 1, name: "迟到冲关", enemies: 2, types: ['intern'], task: ['破坏3件'], time: 55 },
-                { id: 2, name: "茶水间", enemies: 3, types: ['intern', 'colleague'], task: ['撞倒5人'], time: 55 },
-                { id: 3, name: "BOSS: 主管", enemies: 1, types: ['supervisor'], task: ['击败BOSS'], time: 45, boss: true },
-            ]},
-            { id: 2, name: "会议室风云", levels: [
-                { id: 4, name: "过道潜行", enemies: 3, types: ['colleague', 'hr'], task: ['躲避15秒'], time: 40, survive: true },
-                { id: 5, name: "打印机大战", enemies: 4, types: ['hr', 'colleague'], task: ['破坏4件'], time: 55 },
-                { id: 6, name: "BOSS: 经理", enemies: 1, types: ['manager'], task: ['击败BOSS'], time: 50, boss: true },
-            ]},
-            { id: 3, name: "电梯惊魂", levels: [
-                { id: 7, name: "楼梯逃跑", enemies: 4, types: ['colleague', 'supervisor'], task: ['生存25秒'], time: 40, survive: true },
-                { id: 8, name: "电梯故障", enemies: 5, types: ['supervisor', 'hr'], task: ['撞倒6人'], time: 55 },
-                { id: 9, name: "BOSS: 总监", enemies: 1, types: ['director'], task: ['击败BOSS'], time: 55, boss: true },
-            ]},
-            { id: 4, name: "CEO层大乱斗", levels: [
-                { id: 10, name: "接待处突破", enemies: 5, types: ['security'], task: ['突破防线'], time: 50 },
-                { id: 11, name: "CEO走廊", enemies: 6, types: ['security', 'manager'], task: ['破坏6件'], time: 55 },
-                { id: 12, name: "BOSS: CEO", enemies: 1, types: ['ceo'], task: ['终极对决'], time: 60, boss: true },
-            ]},
-            { id: 5, name: "天台大决战", levels: [
-                { id: 13, name: "天台追逐", enemies: 6, types: ['ceo', 'director'], task: ['生存40秒'], time: 50, survive: true },
-                { id: 14, name: "直升机停机坪", enemies: 7, types: ['director', 'manager'], task: ['撞倒8人'], time: 55 },
-                { id: 15, name: "BOSS: 董事会", enemies: 1, types: ['board'], task: ['击败BOSS'], time: 65, boss: true },
-            ]},
-            { id: 6, name: "终极逃亡", levels: [
-                { id: 16, name: "楼顶跑酷", enemies: 8, types: ['board', 'ceo'], task: ['破坏8件'], time: 55 },
-                { id: 17, name: "完美收官", enemies: 10, types: ['ceo', 'director', 'manager'], task: ['终极破坏'], time: 60 },
-                { id: 18, name: "BOSS: 全公司", enemies: 3, types: ['ceo', 'board', 'supervisor'], task: ['最终BOSS'], time: 75, boss: true },
-            ]},
+        // 关卡主题风格
+        const THEMES = {
+            office: { // 办公室
+                bg: ['#1a1a2e', '#16213e'],
+                platform: { top: '#4a4a6a', main: '#3d3d5c', pattern: '#2d2d44' },
+                accent: '#6366f1',
+            },
+            meeting: { // 会议室
+                bg: ['#1e1b4b', '#312e81'],
+                platform: { top: '#818cf8', main: '#6366f1', pattern: '#4f46e5' },
+                accent: '#818cf8',
+            },
+            boss: { // Boss关
+                bg: ['#1f1235', '#2d1b4e'],
+                platform: { top: '#f43f5e', main: '#e11d48', pattern: '#be123c' },
+                accent: '#f43f5e',
+            },
+            sky: { // 天台
+                bg: ['#0c4a6e', '#0369a1'],
+                platform: { top: '#38bdf8', main: '#0ea5e9', pattern: '#0284c7' },
+                accent: '#38bdf8',
+            },
+            tech: { // 科技区
+                bg: ['#022c22', '#064e3b'],
+                platform: { top: '#34d399', main: '#10b981', pattern: '#059669' },
+                accent: '#34d399',
+            },
+            hell: { // 地狱关
+                bg: ['#450a0a', '#7f1d1d'],
+                platform: { top: '#ef4444', main: '#dc2626', pattern: '#b91c1c' },
+                accent: '#ef4444',
+            },
+        };
+        
+        // 关卡配置
+        const LEVELS = [
+            { id:1, name:"迟到冲关", theme:'office', platforms:[
+                {x:0,y:0.85,w:1.0},{x:0.1,y:0.65,w:0.25},{x:0.55,y:0.55,w:0.3},{x:0.2,y:0.40,w:0.35},
+            ], enemies:[{type:'intern',p:0}], items:[{t:'coffee',p:1,pos:0.5},{t:'key',p:3,pos:0.5}], exit:{p:3,pos:0.8}, task:'找钥匙开传送门!', time:60 },
+            { id:2, name:"茶水间", theme:'office', platforms:[
+                {x:0,y:0.88,w:0.6},{x:0.5,y:0.75,w:0.5},{x:0,y:0.60,w:0.35},{x:0.45,y:0.50,w:0.4},{x:0.15,y:0.38,w:0.3},
+            ], enemies:[{type:'intern',p:1},{type:'colleague',p:3}], items:[{t:'coffee',p:2,pos:0.5},{t:'key',p:4,pos:0.5}], exit:{p:4,pos:0.8}, task:'躲避拿到钥匙!', time:55 },
+            { id:3, name:"BOSS:主管", theme:'boss', platforms:[
+                {x:0,y:0.88,w:1.0},{x:0.35,y:0.65,w:0.3},{x:0,y:0.50,w:0.4},{x:0.5,y:0.40,w:0.4},
+            ], enemies:[{type:'supervisor',p:0,b:true}], items:[{t:'energy',p:1,pos:0.5},{t:'key',p:3,pos:0.5}], exit:{p:3,pos:0.8}, task:'击败BOSS!', time:50,boss:true },
+            { id:4, name:"会议室", theme:'meeting', platforms:[
+                {x:0,y:0.88,w:0.5},{x:0.6,y:0.88,w:0.4},{x:0.25,y:0.72,w:0.3},{x:0.65,y:0.60,w:0.3},{x:0.1,y:0.50,w:0.35},{x:0.5,y:0.40,w:0.35},
+            ], enemies:[{type:'hr',p:1},{type:'colleague',p:3}], items:[{t:'shield',p:2,pos:0.5},{t:'key',p:5,pos:0.5}], exit:{p:5,pos:0.8}, task:'穿越会议室!', time:55 },
+            { id:5, name:"打印机", theme:'tech', platforms:[
+                {x:0,y:0.85,w:1.0},{x:0.15,y:0.68,w:0.25},{x:0.55,y:0.68,w:0.25},{x:0.3,y:0.52,w:0.35},{x:0,y:0.38,w:0.3},{x:0.55,y:0.38,w:0.35},
+            ], enemies:[{type:'hr',p:0},{type:'colleague',p:2},{type:'supervisor',p:3}], items:[{t:'coffee',p:1,pos:0.5},{t:'key',p:5,pos:0.5}], exit:{p:5,pos:0.8}, task:'击溃打印机守护!', time:55 },
+            { id:6, name:"BOSS:经理", theme:'boss', platforms:[
+                {x:0,y:0.88,w:1.0},{x:0.2,y:0.70,w:0.25},{x:0.55,y:0.58,w:0.3},{x:0.15,y:0.45,w:0.3},{x:0.55,y:0.35,w:0.35},
+            ], enemies:[{type:'manager',p:0,b:true}], items:[{t:'energy',p:1,pos:0.5},{t:'key',p:4,pos:0.5}], exit:{p:4,pos:0.8}, task:'击败经理!', time:50,boss:true },
+            { id:7, name:"电梯故障", theme:'tech', platforms:[
+                {x:0,y:0.88,w:0.4},{x:0.5,y:0.88,w:0.5},{x:0.15,y:0.72,w:0.3},{x:0.6,y:0.60,w:0.35},{x:0.1,y:0.50,w:0.3},{x:0.5,y:0.40,w:0.3},{x:0.25,y:0.28,w:0.35},
+            ], enemies:[{type:'supervisor',p:1},{type:'hr',p:3},{type:'director',p:5}], items:[{t:'magnet',p:2,pos:0.5},{t:'key',p:6,pos:0.5}], exit:{p:6,pos:0.8}, task:'到达顶层!', time:55 },
+            { id:8, name:"CEO走廊", theme:'meeting', platforms:[
+                {x:0,y:0.88,w:0.5},{x:0.55,y:0.88,w:0.45},{x:0.2,y:0.72,w:0.25},{x:0.6,y:0.60,w:0.3},{x:0.1,y:0.48,w:0.3},{x:0.5,y:0.38,w:0.35},{x:0.2,y:0.25,w:0.35},
+            ], enemies:[{type:'security',p:1},{type:'manager',p:3},{type:'ceo',p:5}], items:[{t:'energy',p:2,pos:0.5},{t:'key',p:6,pos:0.5}], exit:{p:6,pos:0.8}, task:'冲破安保!', time:55 },
+            { id:9, name:"BOSS:CEO", theme:'boss', platforms:[
+                {x:0,y:0.88,w:1.0},{x:0.15,y:0.70,w:0.25},{x:0.55,y:0.60,w:0.3},{x:0.1,y:0.48,w:0.3},{x:0.5,y:0.38,w:0.35},
+            ], enemies:[{type:'ceo',p:0,b:true}], items:[{t:'shield',p:1,pos:0.5},{t:'key',p:4,pos:0.5}], exit:{p:4,pos:0.8}, task:'终极对决!', time:60,boss:true },
+            // 10-18关
+            { id:10, name:"天台追逐", theme:'sky', platforms:[
+                {x:0,y:0.88,w:0.5},{x:0.55,y:0.88,w:0.45},{x:0.25,y:0.72,w:0.25},{x:0.65,y:0.60,w:0.3},{x:0.1,y:0.48,w:0.35},{x:0.5,y:0.38,w:0.3},{x:0.2,y:0.25,w:0.35},
+            ], enemies:[{type:'director',p:1},{type:'security',p:3}], items:[{t:'coffee',p:2,pos:0.5},{t:'key',p:6,pos:0.5}], exit:{p:6,pos:0.8}, task:'天台跑酷!', time:55 },
+            { id:11, name:"董事会", theme:'boss', platforms:[
+                {x:0,y:0.88,w:1.0},{x:0.15,y:0.70,w:0.25},{x:0.55,y:0.58,w:0.3},{x:0.1,y:0.45,w:0.3},{x:0.5,y:0.35,w:0.35},
+            ], enemies:[{type:'board',p:0,b:true}], items:[{t:'energy',p:1,pos:0.5},{t:'key',p:4,pos:0.5}], exit:{p:4,pos:0.8}, task:'击败董事会!', time:60,boss:true },
+            { id:12, name:"终极逃亡", theme:'hell', platforms:[
+                {x:0,y:0.88,w:0.5},{x:0.55,y:0.88,w:0.45},{x:0.2,y:0.72,w:0.25},{x:0.6,y:0.60,w:0.35},{x:0.1,y:0.48,w:0.3},{x:0.5,y:0.38,w:0.35},{x:0.2,y:0.25,w:0.35},
+            ], enemies:[{type:'ceo',p:1},{type:'board',p:3},{type:'director',p:5}], items:[{t:'shield',p:2,pos:0.5},{t:'key',p:6,pos:0.5}], exit:{p:6,pos:0.8}, task:'终极破坏!', time:55 },
         ];
         
         // 敌人配置
-        const ENEMY_TYPES = {
-            intern:      { emoji: '🧑‍🎓', speed: 2,   name: '实习生',  color: '#88ccff', hp: 1, pts: 10 },
-            colleague:   { emoji: '👨‍💼', speed: 2.5, name: '同事',     color: '#aaa',    hp: 1, pts: 15 },
-            hr:          { emoji: '👔',  speed: 3,   name: 'HR',       color: '#ff6b6b', hp: 1, pts: 20 },
-            supervisor:  { emoji: '🧑‍💻', speed: 3.5, name: '主管',     color: '#ffd93d', hp: 2, pts: 30 },
-            manager:     { emoji: '👩‍💼', speed: 4,   name: '经理',     color: '#ff9500', hp: 3, pts: 50 },
-            director:    { emoji: '👨‍🔧', speed: 4.5, name: '总监',     color: '#ff6b6b', hp: 4, pts: 70 },
-            security:    { emoji: '🦸',  speed: 5,   name: '保安',     color: '#4ecca3', hp: 2, pts: 40 },
-            ceo:         { emoji: '👔',  speed: 3,   name: 'CEO',      color: '#e94560', hp: 10, pts: 200, boss: true },
-            board:       { emoji: '🎩',  speed: 4,   name: '董事会',   color: '#9b59b6', hp: 12, pts: 300, boss: true },
+        const ENEMY_CFG = {
+            intern:     {e:'🧑‍🎓',s:1.6,n:'实习生',c:'#88ccff',hp:1,pts:10},
+            colleague:  {e:'👨‍💼',s:1.8,n:'同事',c:'#aaa',hp:1,pts:15},
+            hr:         {e:'👔',s:2.2,n:'HR',c:'#ff6b6b',hp:1,pts:20},
+            supervisor: {e:'🧑‍💻',s:2.5,n:'主管',c:'#ffd93d',hp:2,pts:30},
+            manager:    {e:'👩‍💼',s:2.8,n:'经理',c:'#ff9500',hp:3,pts:50},
+            director:   {e:'👨‍🔧',s:3.2,n:'总监',c:'#ff6b6b',hp:4,pts:70},
+            security:   {e:'🦸',s:3.5,n:'保安',c:'#4ecca3',hp:2,pts:40},
+            ceo:        {e:'👔',s:2.2,n:'CEO',c:'#e94560',hp:8,pts:200,b:true},
+            board:      {e:'🎩',s:2.5,n:'董事会',c:'#9b59b6',hp:10,pts:300,b:true},
         };
         
-        // 破坏物
-        const OBSTACLES = [
-            { emoji: '🪑', pts: 10 }, { emoji: '🪴', pts: 15 }, { emoji: '🖥️', pts: 25 },
-            { emoji: '🖨️', pts: 35 }, { emoji: '📁', pts: 20 }, { emoji: '☕', pts: 5 },
-        ];
-        
-        // 道具
-        const ITEMS = {
-            coffee:   { emoji: '☕',  name: '咖啡',    effect: 'speed',     duration: 5000, desc: '加速!' },
-            energy:   { emoji: '⚡',  name: '能量饮料', effect: 'invincible', duration: 4000, desc: '无敌!' },
-            shield:   { emoji: '🛡️', name: '护盾',    effect: 'shield',    duration: 6000, desc: '护盾!' },
-            magnet:   { emoji: '🧲', name: '磁铁',    effect: 'magnet',    duration: 5000, desc: '吸引!' },
-            banana:   { emoji: '🍌', name: '香蕉皮',  effect: 'trap',      duration: 0, desc: '滑倒!' },
+        // 道具配置
+        const ITEM_CFG = {
+            coffee:  {e:'☕',n:'咖啡',f:'speed',d:4000},
+            energy:  {e:'⚡',n:'能量饮料',f:'invincible',d:3000},
+            shield:  {e:'🛡️',n:'护盾',f:'shield',d:5000},
+            magnet:  {e:'🧲',n:'磁铁',f:'magnet',d:4000},
+            key:     {e:'🔑',n:'钥匙',f:'key',d:0},
         };
         
         // ==================== 游戏状态 ====================
         let game = {
-            state: 'menu',
-            currentLevel: 1,
-            score: 0, maxCombo: 0, combo: 0, comboTimer: null,
-            lives: 3, energy: 0, timeLeft: 60, timeTimer: null,
-            player: null, enemies: [], obstacles: [], items: [], particles: [], drops: [],
-            unlocks: [1], stars: 0,
-            taskProgress: 0, taskTarget: 3, surviveTime: 0,
-            activeEffects: { speed: 0, invincible: 0, shield: 0, magnet: 0 },
-            inventory: [null, null, null],
-            bossPhase: 1, wave: 0, waveTimer: null,
+            state:'menu', currentLevel:1, score:0, maxCombo:0, combo:0, comboTimer:null,
+            lives:3, energy:0, timeLeft:60, timeTimer:null,
+            player:null, enemies:[], platforms:[], items:[], drops:[],
+            unlocks:[1], stars:0, hasKey:false, exitPos:null, cameraY:0,
+            activeEffects:{speed:0,invincible:0,shield:0,magnet:0},
+            inventory:[null,null,null], bossPhase:1, currentTheme:null,
         };
         
-        // ==================== Canvas ====================
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        let groundY, canvasWidth, canvasHeight;
+        let W, H;
         
-        function resizeCanvas() {
-            canvasWidth = window.innerWidth;
-            canvasHeight = window.innerHeight;
-            canvas.width = canvasWidth;
-            canvas.height = canvasHeight;
-            groundY = canvasHeight * CONFIG.GROUND_Y;
+        function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+        resize();
+        window.addEventListener('resize', resize);
+        
+        // ==================== 平台类 ====================
+        class Platform {
+            constructor(cfg, idx) {
+                this.x = cfg.x * W;
+                this.y = cfg.y * H;
+                this.width = cfg.w * W;
+                this.height = 14;
+                this.idx = idx;
+            }
+            
+            draw(theme) {
+                const sy = this.y - game.cameraY;
+                if (sy > H + 30 || sy < -30) return;
+                
+                const t = theme.platform;
+                
+                // 主体
+                ctx.fillStyle = t.main;
+                ctx.fillRect(this.x, sy, this.width, this.height);
+                
+                // 顶部高光
+                ctx.fillStyle = t.top;
+                ctx.fillRect(this.x, sy, this.width, 3);
+                
+                // 纹理
+                ctx.fillStyle = t.pattern;
+                for (let i = 0; i < this.width; i += 25) {
+                    ctx.fillRect(this.x + i, sy + 5, 18, 2);
+                }
+                
+                // 边缘装饰
+                ctx.fillStyle = t.top;
+                ctx.fillRect(this.x, sy, 3, this.height);
+                ctx.fillRect(this.x + this.width - 3, sy, 3, this.height);
+            }
+            
+            getScreenY() { return this.y - game.cameraY; }
         }
-        resizeCanvas();
-        window.addEventListener('resize', resizeCanvas);
+        
+        // ==================== 传送门类 ====================
+        class Portal {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.active = false;
+                this.particles = [];
+                this.rings = [];
+            }
+            
+            activate() {
+                this.active = true;
+                // 初始化光环
+                for (let i = 0; i < 3; i++) {
+                    this.rings.push({ r: 20 + i * 15, alpha: 1 - i * 0.3 });
+                }
+            }
+            
+            draw() {
+                if (!this.active) return;
+                
+                const sy = this.y - game.cameraY;
+                if (sy > H + 80 || sy < -80) return;
+                
+                const time = Date.now() / 1000;
+                const theme = game.currentTheme;
+                const accent = theme ? theme.accent : '#4ecca3';
+                
+                ctx.save();
+                ctx.translate(this.x, sy);
+                
+                // 外圈旋转光环
+                for (let i = 0; i < 8; i++) {
+                    const angle = time * 2 + (i / 8) * Math.PI * 2;
+                    const dist = 45;
+                    ctx.beginPath();
+                    ctx.arc(Math.cos(angle) * dist, Math.sin(angle) * dist, 6, 0, Math.PI * 2);
+                    ctx.fillStyle = accent;
+                    ctx.globalAlpha = 0.7;
+                    ctx.fill();
+                }
+                
+                // 旋转光环环
+                for (let i = 0; i < 3; i++) {
+                    ctx.beginPath();
+                    ctx.arc(0, 0, 25 + i * 12, 0, Math.PI * 2);
+                    ctx.strokeStyle = accent;
+                    ctx.lineWidth = 3;
+                    ctx.globalAlpha = (0.8 - i * 0.2) * (0.5 + Math.sin(time * 3 + i) * 0.5);
+                    ctx.setLineDash([10, 5]);
+                    ctx.lineDashOffset = time * 30 * (i % 2 === 0 ? 1 : -1);
+                    ctx.stroke();
+                }
+                ctx.setLineDash([]);
+                
+                // 内部能量漩涡
+                for (let i = 0; i < 12; i++) {
+                    const angle = -time * 3 + (i / 12) * Math.PI * 2;
+                    const dist = 15 + Math.sin(time * 4 + i) * 5;
+                    ctx.beginPath();
+                    ctx.arc(Math.cos(angle) * dist, Math.sin(angle) * dist, 3, 0, Math.PI * 2);
+                    ctx.fillStyle = i % 2 === 0 ? accent : '#fff';
+                    ctx.globalAlpha = 0.9;
+                    ctx.fill();
+                }
+                
+                // 中心核心
+                const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 20);
+                gradient.addColorStop(0, '#fff');
+                gradient.addColorStop(0.3, accent);
+                gradient.addColorStop(1, 'transparent');
+                ctx.beginPath();
+                ctx.arc(0, 0, 20, 0, Math.PI * 2);
+                ctx.fillStyle = gradient;
+                ctx.globalAlpha = 0.8 + Math.sin(time * 5) * 0.2;
+                ctx.fill();
+                
+                // 光芒
+                ctx.beginPath();
+                for (let i = 0; i < 4; i++) {
+                    const angle = time + (i / 4) * Math.PI * 2;
+                    ctx.moveTo(0, 0);
+                    ctx.lineTo(Math.cos(angle) * 55, Math.sin(angle) * 55);
+                }
+                ctx.strokeStyle = accent;
+                ctx.lineWidth = 2;
+                ctx.globalAlpha = 0.4;
+                ctx.stroke();
+                
+                // 顶部图标
+                ctx.font = '24px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.globalAlpha = 1;
+                ctx.fillText('🌀', 0, 0);
+                
+                ctx.restore();
+                
+                // 底部光芒
+                const glowY = sy + 35;
+                const glowGradient = ctx.createRadialGradient(this.x, glowY, 0, this.x, glowY, 60);
+                glowGradient.addColorStop(0, accent + '60');
+                glowGradient.addColorStop(1, 'transparent');
+                ctx.fillStyle = glowGradient;
+                ctx.fillRect(this.x - 60, glowY - 10, 120, 30);
+            }
+        }
         
         // ==================== 玩家 ====================
         class Player {
             constructor() {
-                this.x = 100;
-                this.y = groundY;
-                this.width = 45;
-                this.height = 65;
+                this.x = 60;
+                this.y = H * 0.8;
+                this.width = 32;
+                this.height = 48;
                 this.velX = 0;
                 this.velY = 0;
-                this.onGround = true;
+                this.onGround = false;
                 this.sliding = false;
                 this.invincible = false;
                 this.attacking = false;
+                this.currentPlatform = null;
                 this.skinEmoji = '🏃';
             }
             
             update() {
                 let speed = CONFIG.MOVE_SPEED;
-                if (game.activeEffects.speed > 0) speed = CONFIG.FAST_SPEED;
+                if (game.activeEffects.speed > 0) speed *= 1.8;
                 
-                this.velX *= 0.88;
+                this.velX *= 0.85;
                 this.x += this.velX;
                 
-                if (!this.onGround) {
-                    this.velY += CONFIG.GRAVITY;
-                    this.y += this.velY;
+                this.velY += CONFIG.GRAVITY;
+                if (this.velY > CONFIG.FALL_SPEED) this.velY = CONFIG.FALL_SPEED;
+                this.y += this.velY;
+                
+                // 平台碰撞
+                this.onGround = false;
+                this.currentPlatform = null;
+                
+                for (const plat of game.platforms) {
+                    if (this.velY >= 0) {
+                        const prevBottom = this.y - this.velY + this.height;
+                        const currBottom = this.y + this.height;
+                        
+                        if (prevBottom <= plat.y && currBottom >= plat.y) {
+                            if (this.x + this.width > plat.x && this.x < plat.x + plat.width) {
+                                this.y = plat.y - this.height;
+                                this.velY = 0;
+                                this.onGround = true;
+                                this.currentPlatform = plat;
+                                break;
+                            }
+                        }
+                    }
                 }
                 
-                if (this.y >= groundY) {
-                    this.y = groundY;
-                    this.velY = 0;
-                    this.onGround = true;
-                }
+                if (this.x < 0) this.x = 0;
+                if (this.x > W - this.width) this.x = W - this.width;
                 
-                if (this.x < 30) this.x = 30;
-                if (this.x > canvasWidth - 30) this.x = canvasWidth - 30;
+                this.height = this.sliding ? 22 : 48;
                 
-                this.height = this.sliding ? 30 : 65;
+                // 相机跟随
+                const targetY = Math.max(0, this.y - H * 0.4);
+                game.cameraY += (targetY - game.cameraY) * 0.1;
             }
             
             draw() {
+                const sy = this.y - game.cameraY;
+                
                 ctx.save();
                 
                 // 护盾
                 if (game.activeEffects.shield > 0) {
                     ctx.beginPath();
-                    ctx.arc(this.x, this.y - 30, 40, 0, Math.PI * 2);
+                    ctx.arc(this.x + this.width/2, sy + this.height/2, 32, 0, Math.PI * 2);
                     ctx.fillStyle = 'rgba(78,204,163,0.25)';
                     ctx.fill();
                     ctx.strokeStyle = '#4ecca3';
@@ -480,25 +584,27 @@
                 }
                 
                 // 无敌闪烁
-                if (game.activeEffects.invincible > 0 && Math.floor(Date.now() / 80) % 2 === 0) {
+                if (game.activeEffects.invincible > 0 && Math.floor(Date.now() / 60) % 2 === 0) {
                     ctx.globalAlpha = 0.5;
                 }
                 
-                // 滑铲特效
-                if (this.sliding) {
-                    ctx.fillStyle = 'rgba(233,69,96,0.25)';
-                    ctx.fillRect(this.x - 25, this.y - 8, 50, 12);
+                // 阴影
+                if (this.onGround) {
+                    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+                    ctx.beginPath();
+                    ctx.ellipse(this.x + this.width/2, sy + this.height + 2, 14, 4, 0, 0, Math.PI * 2);
+                    ctx.fill();
                 }
                 
-                ctx.font = '50px Arial';
+                ctx.font = this.height + 'px Arial';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'bottom';
-                ctx.fillText(this.skinEmoji, this.x, this.y);
+                ctx.fillText(this.skinEmoji, this.x + this.width/2, sy + this.height);
                 
                 // 攻击特效
                 if (this.attacking) {
-                    ctx.font = '35px Arial';
-                    ctx.fillText('💥', this.x + 35, this.y - 15);
+                    ctx.font = '25px Arial';
+                    ctx.fillText('💥', this.x + this.width + 8, sy + this.height/2);
                 }
                 
                 ctx.restore();
@@ -511,42 +617,37 @@
                 }
             }
             
+            dropDown() {
+                if (this.currentPlatform && this.velY >= 0) {
+                    this.currentPlatform = null;
+                    this.onGround = false;
+                    this.velY = 2;
+                }
+            }
+            
             slide() {
                 if (this.onGround) {
                     this.sliding = true;
-                    this.velX = CONFIG.SLIDE_SPEED * (this.velX >= 0 ? 1 : -1);
-                    setTimeout(() => { this.sliding = false; }, 400);
+                    this.velX = CONFIG.MOVE_SPEED * 1.5 * (this.velX >= 0 ? 1 : -1);
+                    setTimeout(() => { this.sliding = false; }, 280);
                 }
             }
             
             attack() {
                 this.attacking = true;
-                setTimeout(() => { this.attacking = false; }, 120);
+                setTimeout(() => { this.attacking = false; }, 100);
                 
                 game.enemies.forEach(e => {
-                    if (Math.abs(e.x - this.x) < 70 && Math.abs(e.y - this.y) < 45) {
-                        e.takeDamage(this.sliding ? 2 : 1);
+                    if (!e.dead && Math.abs(e.x - this.x) < 55 && Math.abs(e.y - this.y) < 40) {
+                        e.takeDamage(1);
                     }
                 });
                 
-                game.obstacles.forEach(o => {
-                    if (!o.destroyed && Math.abs(o.x - this.x) < 55 && Math.abs(o.y - this.y) < 35) {
-                        o.destroy();
+                game.items.forEach(item => {
+                    if (!item.collected && Math.abs(item.x - this.x) < 45 && Math.abs(item.y - this.y) < 35) {
+                        item.collect();
                     }
                 });
-            }
-            
-            useItem(slot) {
-                const item = game.inventory[slot];
-                if (!item) return;
-                
-                const cfg = ITEMS[item];
-                game.inventory[slot] = null;
-                updateItemBar();
-                showEffectHint(cfg.desc);
-                
-                game.activeEffects[cfg.effect] = cfg.duration;
-                updateSpeedEffect();
             }
             
             hit() {
@@ -559,128 +660,118 @@
                 showEffectHint('💥 受伤!');
                 canvas.style.animation = 'none';
                 canvas.offsetHeight;
-                canvas.style.animation = 'shake 0.25s';
+                canvas.style.animation = 'shake 0.2s';
                 
                 setTimeout(() => { this.invincible = false; }, 1500);
                 
                 if (game.lives <= 0) levelLose();
                 updateUI();
             }
+            
+            useItem(slot) {
+                const item = game.inventory[slot];
+                if (!item) return;
+                
+                const cfg = ITEM_CFG[item];
+                game.inventory[slot] = null;
+                updateItemBar();
+                
+                if (cfg.f === 'key') {
+                    game.hasKey = true;
+                    showEffectHint('🔑 获得钥匙!');
+                    if (game.exitPortal) game.exitPortal.activate();
+                } else {
+                    showEffectHint(cfg.e + ' ' + cfg.n + '!');
+                    game.activeEffects[cfg.f] = cfg.d;
+                }
+            }
         }
         
         // ==================== 敌人 ====================
         class Enemy {
-            constructor(type, x) {
-                const cfg = ENEMY_TYPES[type];
-                this.type = type;
-                this.emoji = cfg.emoji;
-                this.speed = cfg.speed * (0.85 + Math.random() * 0.3);
-                this.name = cfg.name;
-                this.color = cfg.color;
-                this.maxHp = cfg.hp;
-                this.hp = cfg.hp;
-                this.pts = cfg.pts;
-                this.boss = cfg.boss || false;
-                this.x = x || canvasWidth + 50;
-                this.y = groundY;
+            constructor(cfg) {
+                const c = ENEMY_CFG[cfg.type];
+                this.type = cfg.type;
+                this.emoji = c.e;
+                this.speed = c.s;
+                this.name = c.n;
+                this.color = c.c;
+                this.maxHp = c.hp;
+                this.hp = c.hp;
+                this.pts = c.pts;
+                this.boss = c.b || false;
+                this.isBoss = cfg.b || false;
+                this.platIdx = cfg.p;
+                this.currentPlatform = null;
+                this.x = 0;
+                this.y = 0;
                 this.dead = false;
                 this.stunned = 0;
                 this.slipping = false;
                 this.slipDir = 1;
-                this.dir = -1;
+                this.dir = 1;
+            }
+            
+            spawn() {
+                const plat = game.platforms[this.platIdx];
+                if (!plat) return;
+                
+                this.currentPlatform = plat;
+                this.x = plat.x + plat.width * 0.5;
+                this.y = plat.y - 42;
+                this.dead = false;
+                this.hp = this.maxHp;
             }
             
             update() {
-                if (this.dead) return;
+                if (this.dead || !this.currentPlatform) return;
                 
-                // 眩晕/滑倒
-                if (this.stunned > 0) {
-                    this.stunned -= 16;
-                    return;
-                }
+                if (this.stunned > 0) { this.stunned -= 16; return; }
                 
                 if (this.slipping) {
-                    this.x += this.slipDir * 12;
+                    this.x += this.slipDir * 10;
                     this.stunned -= 16;
                     if (this.stunned <= 0) this.slipping = false;
+                    this.checkPlatform();
                     return;
                 }
                 
+                const plat = this.currentPlatform;
                 const p = game.player;
                 
-                // Boss特殊AI
-                if (this.boss) {
-                    this.updateBoss();
-                    return;
+                // Boss行为
+                if (this.isBoss) {
+                    const dx = p.x - this.x;
+                    this.dir = dx > 0 ? 1 : -1;
+                    let spd = this.speed * (game.bossPhase === 2 ? 1.2 : game.bossPhase === 3 ? 1.5 : 0.8);
+                    
+                    if (this.currentPlatform === p.currentPlatform || Math.abs(dx) < 100) {
+                        this.x += this.dir * spd;
+                    }
+                } else {
+                    this.x += this.dir * this.speed;
                 }
                 
-                // 普通敌人AI - 追击玩家
-                const dx = p.x - this.x;
-                this.dir = dx > 0 ? 1 : -1;
+                // 边界
+                if (this.x < plat.x + 12) { this.x = plat.x + 12; this.dir = 1; }
+                if (this.x > plat.x + plat.width - 12) { this.x = plat.x + plat.width - 12; this.dir = -1; }
                 
-                // 随机跳跃追击
-                if (Math.abs(dx) < 150 && p.onGround && Math.random() > 0.97) {
-                    this.y -= 100;
+                // 碰撞
+                if (Math.abs(this.x - p.x) < 28 && Math.abs(this.y - p.y) < 42) {
+                    if (p.sliding) p.attack();
+                    else p.hit();
                 }
-                
-                // 重力
-                if (this.y < groundY) this.y += CONFIG.GRAVITY;
-                if (this.y > groundY) this.y = groundY;
-                
-                this.x += this.dir * this.speed;
-                
-                // 碰撞检测
-                this.checkCollision();
             }
             
-            updateBoss() {
-                const p = game.player;
-                const dx = p.x - this.x;
-                this.dir = dx > 0 ? 1 : -1;
-                
-                // Boss分阶段行为
-                const phase = game.bossPhase;
-                let moveSpeed = this.speed;
-                
-                if (phase === 1) moveSpeed *= 0.5;
-                else if (phase === 2) moveSpeed *= 0.8;
-                else moveSpeed *= 1.3;
-                
-                this.x += this.dir * moveSpeed;
-                
-                // 跳跃攻击
-                if (Math.abs(dx) < 200 && Math.random() > 0.98 && this.y >= groundY) {
-                    this.y -= 120;
-                }
-                
-                // 重力
-                if (this.y < groundY) this.y += CONFIG.GRAVITY;
-                if (this.y > groundY) this.y = groundY;
-                
-                // Boss血条
-                updateBossBar(this.hp / this.maxHp);
-                
-                this.checkCollision();
-            }
-            
-            checkCollision() {
-                const p = game.player;
-                
-                // 滑铲无敌
-                if (p.sliding) return;
-                
-                const xDist = Math.abs(this.x - p.x);
-                const yDist = Math.abs(this.y - p.y);
-                
-                // 跳跃时放宽碰撞
-                if (!p.onGround) {
-                    if (xDist < 25 && yDist < 55) p.hit();
-                    return;
-                }
-                
-                // 地面碰撞
-                if (xDist < 35 && yDist < 45 && !p.invincible) {
-                    p.hit();
+            checkPlatform() {
+                for (const plat of game.platforms) {
+                    if (this.y >= plat.y - 8 && this.y <= plat.y + 18) {
+                        if (this.x >= plat.x && this.x <= plat.x + plat.width) {
+                            this.currentPlatform = plat;
+                            this.y = plat.y - 42;
+                            return;
+                        }
+                    }
                 }
             }
             
@@ -688,21 +779,19 @@
                 if (this.dead) return;
                 this.slipping = true;
                 this.slipDir = -this.dir;
-                this.stunned = 800;
+                this.stunned = 600;
             }
             
             takeDamage(dmg) {
-                this.hp -= dmg;
-                this.stunned = 400;
+                if (this.dead) return;
                 
-                for (let i = 0; i < 4; i++) {
-                    game.particles.push({
-                        x: this.x, y: this.y - 30,
-                        vx: (Math.random() - 0.5) * 8,
-                        vy: -Math.random() * 6,
-                        emoji: ['💥', '⭐', '💫'][i % 3],
-                        life: 25
-                    });
+                this.hp -= dmg;
+                this.stunned = 280;
+                this.x += (Math.random() > 0.5 ? 1 : -1) * 18;
+                this.checkPlatform();
+                
+                for (let i = 0; i < 3; i++) {
+                    game.drops.push({x:this.x,y:this.y,vx:(Math.random()-0.5)*6,vy:-Math.random()*5,emoji:['💥','⭐','💫'][i],life:20});
                 }
                 
                 if (this.hp <= 0) this.die();
@@ -712,230 +801,177 @@
                 this.dead = true;
                 addScore(this.pts);
                 addCombo();
-                game.taskProgress++;
-                updateTaskDisplay();
                 
-                // 掉落道具
-                if (Math.random() > 0.65) {
-                    const types = Object.keys(ITEMS);
-                    game.drops.push({ x: this.x, y: this.y - 30, type: types[Math.floor(Math.random() * types.length)], life: 300 });
+                // 掉落
+                if (Math.random() > 0.6) {
+                    const types = ['coffee','energy','shield','magnet'];
+                    game.drops.push({x:this.x,y:this.y,vx:(Math.random()-0.5)*4,vy:-3,type:types[Math.floor(Math.random()*types.length)],life:180});
                 }
                 
-                // 爆炸效果
-                for (let i = 0; i < 8; i++) {
-                    game.particles.push({
-                        x: this.x, y: this.y - 30,
-                        vx: (Math.random() - 0.5) * 12,
-                        vy: -Math.random() * 8,
-                        emoji: this.emoji,
-                        life: 35
-                    });
+                // 爆炸
+                for (let i = 0; i < 6; i++) {
+                    game.drops.push({x:this.x,y:this.y,vx:(Math.random()-0.5)*10,vy:-Math.random()*7,emoji:this.emoji,life:30});
                 }
                 
                 // Boss击败
-                if (this.boss) {
+                if (this.isBoss) {
                     if (game.bossPhase < 3) {
                         game.bossPhase++;
-                        this.maxHp += 4;
+                        this.maxHp += 3;
                         this.hp = this.maxHp;
-                        showEffectHint('⚠️ BOSS进入下一阶段!');
+                        this.dead = false;
+                        showEffectHint('⚠️ BOSS进入下阶段!');
                     } else {
                         game.enemies = [];
                         levelWin();
                     }
-                } else {
-                    game.enemies = game.enemies.filter(e => e !== this);
                 }
-                
-                checkWinCondition();
             }
             
             draw() {
-                if (this.dead) return;
+                if (this.dead || !this.currentPlatform) return;
+                
+                const sy = this.y - game.cameraY;
+                if (sy > H + 50 || sy < -50) return;
                 
                 ctx.save();
                 if (this.stunned > 0) ctx.globalAlpha = 0.6;
-                if (this.boss) { ctx.shadowColor = this.color; ctx.shadowBlur = 15; }
+                if (this.isBoss) { ctx.shadowColor = this.color; ctx.shadowBlur = 10; }
                 
-                ctx.font = this.boss ? '65px Arial' : '42px Arial';
+                ctx.font = (this.isBoss ? 50 : 38) + 'px Arial';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'bottom';
-                ctx.fillText(this.emoji, this.x, this.y);
+                ctx.fillText(this.emoji, this.x, sy);
                 
                 // 血条
                 if (this.maxHp > 1) {
-                    const bw = this.boss ? 55 : 35;
+                    const bw = this.isBoss ? 45 : 28;
                     ctx.fillStyle = 'rgba(0,0,0,0.5)';
-                    ctx.fillRect(this.x - bw/2, this.y - (this.boss ? 75 : 50), bw, 5);
+                    ctx.fillRect(this.x - bw/2, sy - 38, bw, 4);
                     ctx.fillStyle = this.hp / this.maxHp > 0.5 ? '#4ecca3' : '#e94560';
-                    ctx.fillRect(this.x - bw/2, this.y - (this.boss ? 75 : 50), bw * (this.hp / this.maxHp), 5);
+                    ctx.fillRect(this.x - bw/2, sy - 38, bw * (this.hp / this.maxHp), 4);
                 }
                 
                 ctx.restore();
             }
         }
         
-        // ==================== 障碍物 ====================
-        class Obstacle {
-            constructor(x) {
-                const cfg = OBSTACLES[Math.floor(Math.random() * OBSTACLES.length)];
-                this.emoji = cfg.emoji;
-                this.pts = cfg.pts;
-                this.x = x;
-                this.y = groundY;
-                this.destroyed = false;
+        // ==================== 道具 ====================
+        class Item {
+            constructor(cfg) {
+                const c = ITEM_CFG[cfg.t];
+                this.type = cfg.t;
+                this.emoji = c.e;
+                this.name = c.name;
+                this.platIdx = cfg.p;
+                this.pos = cfg.pos || 0.5;
+                this.collected = false;
+                this.x = 0;
+                this.y = 0;
             }
             
-            update() {
-                // 磁铁吸引
-                if (game.activeEffects.magnet > 0 && !this.destroyed) {
-                    const dx = game.player.x - this.x;
-                    if (Math.abs(dx) < 180) this.x += Math.sign(dx) * 2.5;
-                }
-                
-                if (!this.destroyed) {
-                    const p = game.player;
-                    if (Math.abs(this.x - p.x) < 30 && Math.abs(this.y - p.y) < 35) {
-                        this.destroy();
-                    }
-                }
-            }
-            
-            destroy() {
-                if (this.destroyed) return;
-                this.destroyed = true;
-                addScore(this.pts);
-                game.taskProgress++;
-                updateTaskDisplay();
-                
-                for (let i = 0; i < 6; i++) {
-                    game.particles.push({
-                        x: this.x, y: this.y - 22,
-                        vx: (Math.random() - 0.5) * 10,
-                        vy: -Math.random() * 7,
-                        emoji: this.emoji,
-                        life: 30
-                    });
-                }
-                
-                setTimeout(() => { game.obstacles = game.obstacles.filter(o => o !== this); }, 400);
-                checkWinCondition();
+            spawn() {
+                const plat = game.platforms[this.platIdx];
+                if (!plat) return;
+                this.x = plat.x + plat.width * this.pos;
+                this.y = plat.y - 32;
+                this.collected = false;
             }
             
             draw() {
-                if (this.destroyed) return;
-                ctx.font = '38px Arial';
+                if (this.collected) return;
+                
+                const sy = this.y - game.cameraY;
+                if (sy > H + 25 || sy < -25) return;
+                
+                const bounce = Math.sin(Date.now() / 280) * 2;
+                
+                ctx.font = '26px Arial';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'bottom';
-                ctx.fillText(this.emoji, this.x, this.y);
+                ctx.fillText(this.emoji, this.x, sy + bounce);
+            }
+            
+            collect() {
+                if (this.collected) return;
+                this.collected = true;
+                
+                if (this.type === 'key') {
+                    game.hasKey = true;
+                    showEffectHint('🔑 获得钥匙!');
+                    if (game.exitPortal) game.exitPortal.activate();
+                } else {
+                    for (let i = 0; i < 3; i++) {
+                        if (!game.inventory[i]) {
+                            game.inventory[i] = this.type;
+                            updateItemBar();
+                            showEffectHint(this.emoji + ' ' + this.name + '!');
+                            return;
+                        }
+                    }
+                }
             }
         }
         
         // ==================== 游戏函数 ====================
-        function getLevel() {
-            for (const ch of CHAPTERS) {
-                for (const lv of ch.levels) {
-                    if (lv.id === game.currentLevel) return { ...lv, chapter: ch };
-                }
-            }
-            return null;
+        function getLevel() { return LEVELS.find(l => l.id === game.currentLevel); }
+        
+        function getTheme() {
+            const lv = getLevel();
+            if (!lv) return THEMES.office;
+            return THEMES[lv.theme] || THEMES.office;
         }
         
         function addScore(pts) {
             const mult = game.combo > 5 ? 2 : game.combo > 10 ? 3 : 1;
             game.score += pts * mult;
-            showPopup('+' + pts * mult, game.player.x, game.player.y - 45, 'scorePopup');
+            showPopup('+' + pts * mult, game.player.x, game.player.y - game.cameraY - 35, 'scorePopup');
             updateUI();
         }
         
         function addCombo() {
             game.combo++;
             if (game.combo > game.maxCombo) game.maxCombo = game.combo;
-            if (game.combo > 2) showPopup(game.combo + '连击!', game.player.x, game.player.y - 70, 'comboPopup');
+            if (game.combo > 2) showPopup(game.combo + '连击!', game.player.x, game.player.y - game.cameraY - 55, 'comboPopup');
             game.energy = Math.min(CONFIG.ENERGY_MAX, game.energy + CONFIG.ENERGY_PER_HIT);
             updateUI();
             clearTimeout(game.comboTimer);
             game.comboTimer = setTimeout(() => { game.combo = 0; updateUI(); }, CONFIG.COMBO_TIMEOUT);
         }
         
-        function showPopup(text, x, y, className) {
+        function showPopup(text, x, y, cls) {
             const div = document.createElement('div');
-            div.className = className;
+            div.className = cls;
             div.textContent = text;
             div.style.left = x + 'px';
             div.style.top = y + 'px';
             document.getElementById('gameContainer').appendChild(div);
-            setTimeout(() => div.remove(), 700);
+            setTimeout(() => div.remove(), 500);
         }
         
         function showEffectHint(text) {
-            const hint = document.getElementById('tutorial');
-            hint.textContent = text;
-            hint.style.background = 'rgba(78,204,163,0.9)';
-            hint.style.display = 'block';
-            setTimeout(() => {
-                hint.style.background = 'rgba(0,0,0,0.8)';
-                hint.style.display = 'none';
-            }, 1200);
+            const h = document.getElementById('tutorial');
+            h.textContent = text;
+            h.style.background = 'rgba(78,204,163,0.9)';
+            h.style.display = 'block';
+            setTimeout(() => { h.style.background = 'rgba(0,0,0,0.8)'; h.style.display = 'none'; }, 1000);
         }
         
         function updateUI() {
+            document.getElementById('levelDisplay').textContent = game.currentLevel;
             document.getElementById('scoreDisplay').textContent = game.score;
             document.getElementById('comboDisplay').textContent = game.combo;
-            document.getElementById('timeDisplay').textContent = Math.ceil(game.timeLeft);
             document.getElementById('livesDisplay').textContent = game.lives;
             document.getElementById('starsDisplay').textContent = game.stars;
             document.getElementById('energyFill').style.height = game.energy + '%';
-            
-            const lv = getLevel();
-            if (lv) {
-                document.getElementById('levelProgress').style.width = Math.min(100, (game.taskProgress / game.taskTarget) * 100) + '%';
-            }
-        }
-        
-        function updateTaskDisplay() {
-            const lv = getLevel();
-            if (!lv) return;
-            
-            if (lv.boss) {
-                document.getElementById('taskText').textContent = `BOSS ${game.bossPhase}/3阶段`;
-            } else if (lv.survive) {
-                document.getElementById('taskText').textContent = `生存 ${game.surviveTime}/${game.taskTarget}秒`;
-            } else {
-                document.getElementById('taskText').textContent = `${lv.task[0]} (${game.taskProgress}/${game.taskTarget})`;
-            }
-        }
-        
-        function updateBossBar(pct) {
-            document.getElementById('bossBar').classList.add('show');
-            document.getElementById('bossHealth').style.width = (pct * 100) + '%';
         }
         
         function updateItemBar() {
             for (let i = 0; i < 3; i++) {
                 const slot = document.getElementById('item' + (i + 1));
-                slot.textContent = game.inventory[i] ? ITEMS[game.inventory[i]].emoji : '';
+                slot.textContent = game.inventory[i] ? ITEM_CFG[game.inventory[i]].e : '';
                 slot.classList.toggle('active', game.inventory[i] !== null);
             }
-        }
-        
-        function updateSpeedEffect() {
-            const e = document.getElementById('speedEffect');
-            e.className = 'speedEffect';
-            if (game.activeEffects.speed > 0) e.classList.add('fast');
-            if (game.activeEffects.invincible > 0) e.classList.add('invincible');
-        }
-        
-        function collectDrop(drop) {
-            for (let i = 0; i < 3; i++) {
-                if (!game.inventory[i]) {
-                    game.inventory[i] = drop.type;
-                    updateItemBar();
-                    showEffectHint(ITEMS[drop.type].emoji + ' ' + ITEMS[drop.type].name + '!');
-                    return true;
-                }
-            }
-            return false;
         }
         
         // ==================== 关卡逻辑 ====================
@@ -945,253 +981,177 @@
             
             game.state = 'playing';
             game.timeLeft = lv.time;
-            game.taskProgress = 0;
-            game.surviveTime = 0;
+            game.hasKey = false;
             game.bossPhase = 1;
-            game.wave = 0;
             game.lives = 3;
             game.combo = 0;
             game.energy = 0;
-            game.activeEffects = { speed: 0, invincible: 0, shield: 0, magnet: 0 };
-            game.inventory = [null, null, null];
+            game.cameraY = 0;
+            game.currentTheme = THEMES[lv.theme] || THEMES.office;
+            game.activeEffects = {speed:0,invincible:0,shield:0,magnet:0};
+            game.inventory = [null,null,null];
             game.enemies = [];
-            game.obstacles = [];
-            game.particles = [];
+            game.platforms = [];
+            game.items = [];
             game.drops = [];
+            game.exitPortal = null;
             
-            // 任务目标
-            if (lv.survive) game.taskTarget = lv.time - 15;
-            else if (lv.boss) game.taskTarget = 1;
-            else game.taskTarget = Math.max(lv.enemies * 2, 4);
+            // 创建平台
+            lv.platforms.forEach((p, i) => game.platforms.push(new Platform(p, i)));
             
-            // 障碍物
-            for (let i = 0; i < 6; i++) {
-                game.obstacles.push(new Obstacle(150 + Math.random() * (canvasWidth - 300)));
-            }
+            // 创建敌人
+            lv.enemies.forEach(e => game.enemies.push(new Enemy(e)));
+            
+            // 创建道具
+            lv.items.forEach(i => game.items.push(new Item(i)));
+            
+            setTimeout(() => {
+                game.enemies.forEach(e => e.spawn());
+                game.items.forEach(i => i.spawn());
+                
+                // 传送门
+                const exitPlat = game.platforms[lv.exit.p];
+                const portalX = exitPlat.x + exitPlat.width * lv.exit.pos;
+                const portalY = exitPlat.y - 35;
+                game.exitPortal = new Portal(portalX, portalY);
+            }, 100);
             
             game.player = new Player();
             
             updateUI();
             updateItemBar();
-            updateTaskDisplay();
-            document.getElementById('bossBar').classList.remove('show');
+            document.getElementById('taskText').textContent = lv.task || '找钥匙→传送门!';
             document.getElementById('startScreen').style.display = 'none';
             document.getElementById('endScreen').classList.remove('show');
             
-            // 生成敌人
-            if (lv.boss) {
-                game.enemies.push(new Enemy(lv.types[0]));
-            } else {
-                scheduleWave();
-            }
-            
-            // 计时器
             game.timeTimer = setInterval(() => {
                 if (game.state !== 'playing') return;
-                
                 game.timeLeft -= 0.1;
-                
-                if (lv.survive) {
-                    game.surviveTime++;
-                    updateTaskDisplay();
-                    if (game.surviveTime >= game.taskTarget) levelWin();
-                }
-                
-                // 效果倒计时
-                Object.keys(game.activeEffects).forEach(k => {
-                    if (game.activeEffects[k] > 0) game.activeEffects[k] -= 100;
-                });
-                updateSpeedEffect();
-                
-                if (game.timeLeft <= 0) {
-                    if (game.taskProgress >= game.taskTarget) levelWin();
-                    else if (!lv.survive) levelLose();
-                }
-                
+                Object.keys(game.activeEffects).forEach(k => { if (game.activeEffects[k] > 0) game.activeEffects[k] -= 100; });
+                if (game.timeLeft <= 0) levelLose();
                 updateUI();
             }, 100);
         }
         
-        function scheduleWave() {
-            const lv = getLevel();
-            if (!lv || lv.boss) return;
+        function checkExit() {
+            if (!game.hasKey || !game.exitPortal) return;
             
-            clearTimeout(game.waveTimer);
+            const p = game.player;
+            const dx = Math.abs(p.x - game.exitPortal.x);
+            const dy = Math.abs(p.y - game.exitPortal.y);
             
-            game.waveTimer = setTimeout(() => {
-                if (game.state !== 'playing') return;
-                
-                game.wave++;
-                const count = Math.min(lv.enemies, 1 + Math.floor(game.wave / 2));
-                
-                for (let i = 0; i < count; i++) {
-                    setTimeout(() => {
-                        if (game.state === 'playing') {
-                            const type = lv.types[Math.floor(Math.random() * lv.types.length)];
-                            game.enemies.push(new Enemy(type, canvasWidth + 50));
-                        }
-                    }, i * 400);
-                }
-                
-                if (game.wave < lv.enemies * 2) scheduleWave();
-            }, 2200);
-        }
-        
-        function checkWinCondition() {
-            const lv = getLevel();
-            if (!lv) return;
-            
-            if (lv.survive) {
-                if (game.surviveTime >= game.taskTarget) levelWin();
-            } else if (game.taskProgress >= game.taskTarget) {
-                if (game.enemies.filter(e => !e.boss).length === 0) levelWin();
-            }
+            if (dx < 35 && dy < 45) levelWin();
         }
         
         function levelWin() {
             game.state = 'win';
             clearInterval(game.timeTimer);
-            clearTimeout(game.waveTimer);
             
-            // 星星
             let earned = 1;
             if (game.lives >= 2) earned = 2;
-            if (game.lives >= 3 && game.timeLeft > 15) earned = 3;
+            if (game.lives >= 3 && game.timeLeft > 10) earned = 3;
             game.stars += earned;
             
-            // 解锁下一关
             const next = game.currentLevel + 1;
-            if (next <= 18 && !game.unlocks.includes(next)) {
-                game.unlocks.push(next);
-            }
+            if (next <= LEVELS.length && !game.unlocks.includes(next)) game.unlocks.push(next);
             saveProgress();
             
-            const lv = getLevel();
-            const stories = {
-                1: '冲进办公室，全员目瞪口呆!', 2: '茶水间一片狼藉!', 3: '主管被蛋糕糊脸!',
-                4: '偷偷溜过走廊!', 5: '打印机冒烟!', 6: '经理假发掉了!',
-                7: '楼梯回荡着笑声!', 8: '电梯失控!', 9: '总监西装扯破了!',
-                10: '保安被甩在身后!', 11: 'CEO鱼缸破了!', 12: 'CEO跪地求饶!',
-                13: '天台风景真好!', 14: '差点劫持直升机!', 15: '董事会全体起立!',
-                16: '楼顶跑酷!', 17: '完美收官!', 18: '终极BOSS战胜利!',
-            };
+            const stories = {1:'冲出办公室!',2:'茶水间狼藉!',3:'主管被你击败!',4:'会议室恶作剧!',5:'打印机大战!',6:'经理认输!',7:'电梯逃脱!',8:'冲破安保!',9:'CEO跪地!',10:'天台风景!',11:'董事会投降!',12:'终极胜利!'};
             
             document.getElementById('endTitle').textContent = '🎉 过关!';
-            document.getElementById('endStory').textContent = stories[lv?.id] || '太棒了!';
-            document.getElementById('starsEarned').textContent = '⭐'.repeat(earned) + '☆'.repeat(3 - earned);
+            document.getElementById('endStory').textContent = stories[game.currentLevel] || '太棒了!';
+            document.getElementById('starsEarned').textContent = '⭐'.repeat(earned) + '☆'.repeat(3-earned);
             document.getElementById('finalScore').textContent = game.score;
             document.getElementById('maxCombo').textContent = game.maxCombo;
             document.getElementById('endScreen').className = 'win show';
-            document.getElementById('bossBar').classList.remove('show');
         }
         
         function levelLose() {
             game.state = 'lose';
             clearInterval(game.timeTimer);
-            clearTimeout(game.waveTimer);
             
-            document.getElementById('endTitle').textContent = '💨 被抓了!';
-            document.getElementById('endStory').textContent = '被' + (game.enemies[0]?.name || '老板') + '抓住了...再试!';
+            document.getElementById('endTitle').textContent = '💨 失败!';
+            document.getElementById('endStory').textContent = '被' + (game.enemies.find(e => !e.dead)?.name || '老板') + '抓住了...';
             document.getElementById('starsEarned').textContent = '☆☆☆';
             document.getElementById('finalScore').textContent = game.score;
             document.getElementById('maxCombo').textContent = game.maxCombo;
             document.getElementById('endScreen').className = 'lose show';
-            document.getElementById('bossBar').classList.remove('show');
         }
         
-        // ==================== 保存/加载 ====================
-        function saveProgress() {
-            localStorage.setItem('bossRunnerHD_progress', JSON.stringify({ unlocks: game.unlocks, stars: game.stars }));
-        }
+        function saveProgress() { localStorage.setItem('bossRunnerPlat_prog', JSON.stringify({unlocks:game.unlocks,stars:game.stars})); }
+        function loadProgress() { const s = localStorage.getItem('bossRunnerPlat_prog'); if (s) { const d = JSON.parse(s); game.unlocks = d.unlocks || [1]; game.stars = d.stars || 0; } }
+        function resetProgress() { if (confirm('重置进度?')) { game.unlocks = [1]; game.stars = 0; saveProgress(); showLevelSelector(); } }
         
-        function loadProgress() {
-            const saved = localStorage.getItem('bossRunnerHD_progress');
-            if (saved) {
-                const d = JSON.parse(saved);
-                game.unlocks = d.unlocks || [1];
-                game.stars = d.stars || 0;
-            }
-        }
-        
-        function resetProgress() {
-            if (confirm('重置所有进度?')) {
-                game.unlocks = [1];
-                game.stars = 0;
-                saveProgress();
-                showLevelSelector();
-            }
-        }
-        
-        // ==================== UI ====================
         function showLevelSelector() {
             const c = document.getElementById('levelSelector');
             c.innerHTML = '';
-            
-            CHAPTERS.forEach((ch, i) => {
-                if (i > 0) {
-                    const t = document.createElement('div');
-                    t.className = 'chapterTitle';
-                    t.textContent = `📖 第${ch.id}章: ${ch.name}`;
-                    c.appendChild(t);
-                }
-                
-                ch.levels.forEach(lv => {
-                    const btn = document.createElement('div');
-                    btn.className = 'levelBtn';
-                    if (game.unlocks.includes(lv.id)) btn.classList.add('unlocked');
-                    if (game.currentLevel === lv.id) btn.classList.add('current');
-                    if (!game.unlocks.includes(lv.id)) btn.classList.add('locked');
-                    if (lv.boss) btn.classList.add('boss');
-                    
-                    btn.innerHTML = `<span class="level-num">${lv.id}</span><span>${lv.boss ? '👔' : '▶'}</span>`;
-                    btn.onclick = () => {
-                        if (game.unlocks.includes(lv.id)) {
-                            game.currentLevel = lv.id;
-                            showLevelSelector();
-                        }
-                    };
-                    c.appendChild(btn);
-                });
+            LEVELS.forEach(lv => {
+                const btn = document.createElement('div');
+                btn.className = 'levelBtn';
+                if (game.unlocks.includes(lv.id)) btn.classList.add('unlocked');
+                if (game.currentLevel === lv.id) btn.classList.add('current');
+                if (!game.unlocks.includes(lv.id)) btn.classList.add('locked');
+                if (lv.boss) btn.classList.add('boss');
+                btn.innerHTML = `<span class="level-num">${lv.id}</span><span>${lv.boss?'👔':'▶'}</span>`;
+                btn.onclick = () => { if (game.unlocks.includes(lv.id)) { game.currentLevel = lv.id; showLevelSelector(); } };
+                c.appendChild(btn);
             });
         }
         
         // ==================== 游戏循环 ====================
         function gameLoop() {
-            if (game.state !== 'playing') {
-                requestAnimationFrame(gameLoop);
-                return;
+            if (game.state !== 'playing') { requestAnimationFrame(gameLoop); return; }
+            
+            const theme = game.currentTheme || THEMES.office;
+            
+            // 背景渐变
+            const bgGrad = ctx.createLinearGradient(0, 0, 0, H);
+            bgGrad.addColorStop(0, theme.bg[0]);
+            bgGrad.addColorStop(1, theme.bg[1]);
+            ctx.fillStyle = bgGrad;
+            ctx.fillRect(0, 0, W, H);
+            
+            // 背景星星
+            ctx.fillStyle = 'rgba(255,255,255,0.08)';
+            for (let i = 0; i < 25; i++) {
+                const x = (i * 131) % W;
+                const y = ((i * 83) - game.cameraY * 0.1) % H;
+                ctx.fillRect(x, y, 2, 2);
             }
             
-            ctx.fillStyle = '#1a1a2e';
-            ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+            // 绘制平台
+            game.platforms.forEach(p => p.draw(theme));
             
-            // 背景
-            ctx.fillStyle = '#2d2d44';
-            ctx.fillRect(0, groundY, canvasWidth, canvasHeight - groundY);
-            ctx.strokeStyle = '#4a4a6a';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.moveTo(0, groundY);
-            ctx.lineTo(canvasWidth, groundY);
-            ctx.stroke();
+            // 传送门
+            if (game.exitPortal) game.exitPortal.draw();
             
-            // 障碍物
-            game.obstacles.forEach(o => { o.update(); o.draw(); });
+            // 道具
+            game.items.forEach(i => i.draw());
             
             // 掉落物
             game.drops.forEach(d => {
+                d.x += d.vx || 0;
+                d.y += d.vy || 0;
+                if (d.vy !== undefined) d.vy += 0.2;
                 d.life--;
-                d.y += 2;
-                if (d.life < 80) d.y += 2;
                 
-                ctx.globalAlpha = Math.min(1, d.life / 100);
-                ctx.font = '28px Arial';
+                const sy = d.y - game.cameraY;
+                ctx.globalAlpha = Math.min(1, d.life / 30);
+                ctx.font = d.type ? '22px Arial' : '18px Arial';
                 ctx.textAlign = 'center';
-                ctx.fillText(ITEMS[d.type].emoji, d.x, d.y);
+                ctx.fillText(d.type ? ITEM_CFG[d.type].e : d.emoji, d.x, sy);
                 ctx.globalAlpha = 1;
                 
-                if (Math.abs(d.x - game.player.x) < 35 && Math.abs(d.y - game.player.y) < 45) {
-                    if (collectDrop(d)) d.life = 0;
+                if (d.type && Math.abs(d.x - game.player.x) < 28 && Math.abs(d.y - game.player.y) < 32) {
+                    for (let i = 0; i < 3; i++) {
+                        if (!game.inventory[i]) {
+                            game.inventory[i] = d.type;
+                            updateItemBar();
+                            showEffectHint(ITEM_CFG[d.type].e + ' ' + ITEM_CFG[d.type].n + '!');
+                            d.life = 0;
+                            break;
+                        }
+                    }
                 }
             });
             game.drops = game.drops.filter(d => d.life > 0);
@@ -1203,20 +1163,7 @@
             // 敌人
             game.enemies.forEach(e => { e.update(); e.draw(); });
             
-            // 粒子
-            game.particles.forEach(p => {
-                p.x += p.vx;
-                p.y += p.vy;
-                p.vy += 0.25;
-                p.life--;
-                
-                ctx.globalAlpha = p.life / 40;
-                ctx.font = '22px Arial';
-                ctx.textAlign = 'center';
-                ctx.fillText(p.emoji, p.x, p.y);
-                ctx.globalAlpha = 1;
-            });
-            game.particles = game.particles.filter(p => p.life > 0);
+            checkExit();
             
             requestAnimationFrame(gameLoop);
         }
@@ -1232,15 +1179,19 @@
             if (!joystickActive || !game.player) return;
             
             const rect = joystickArea.getBoundingClientRect();
-            const cx = rect.left + rect.width / 2;
-            const cy = rect.top + rect.height / 2;
+            const cx = rect.left + rect.width/2;
+            const cy = rect.top + rect.height/2;
             const dx = e.touches[0].clientX - cx;
             const dy = e.touches[0].clientY - cy;
-            const dist = Math.min(Math.sqrt(dx*dx + dy*dy), 38);
+            const dist = Math.min(Math.sqrt(dx*dx+dy*dy), 36);
             const angle = Math.atan2(dy, dx);
             
-            joystick.style.transform = `translate(calc(-50% + ${Math.cos(angle) * dist}px), calc(-50% + ${Math.sin(angle) * dist}px))`;
-            game.player.velX = (Math.cos(angle) * dist / 38) * CONFIG.MOVE_SPEED;
+            joystick.style.transform = `translate(calc(-50% + ${Math.cos(angle)*dist}px), calc(-50% + ${Math.sin(angle)*dist}px))`;
+            
+            let speed = CONFIG.MOVE_SPEED;
+            if (game.activeEffects.speed > 0) speed *= 1.8;
+            
+            game.player.velX = (Math.cos(angle) * dist / 36) * speed;
         });
         joystickArea.addEventListener('touchend', e => {
             e.preventDefault();
@@ -1250,71 +1201,37 @@
         });
         
         document.getElementById('jumpBtn').addEventListener('touchstart', e => { e.preventDefault(); if (game.player && game.state === 'playing') game.player.jump(); });
+        document.getElementById('slideBtn').addEventListener('touchstart', e => { e.preventDefault(); if (game.player && game.state === 'playing') { if (game.player.onGround) game.player.slide(); else game.player.dropDown(); } });
         document.getElementById('attackBtn').addEventListener('touchstart', e => { e.preventDefault(); if (game.player && game.state === 'playing') game.player.attack(); });
-        document.getElementById('slideBtn').addEventListener('touchstart', e => { e.preventDefault(); if (game.player && game.state === 'playing') game.player.slide(); });
         document.getElementById('skillBtn').addEventListener('touchstart', e => {
             e.preventDefault();
             if (game.state === 'playing' && game.energy >= CONFIG.ENERGY_MAX) {
                 game.energy = 0;
                 showEffectHint('💥 蛋糕炸弹!');
-                game.enemies.forEach(enemy => {
-                    enemy.takeDamage(3);
-                    enemy.x += (Math.random() - 0.5) * 80;
-                });
+                game.enemies.forEach(enemy => enemy.takeDamage(2));
                 updateUI();
             }
         });
         
         for (let i = 0; i < 3; i++) {
-            document.getElementById('item' + (i + 1)).addEventListener('click', () => {
-                if (game.player && game.state === 'playing') game.player.useItem(i);
-            });
+            document.getElementById('item' + (i + 1)).addEventListener('click', () => { if (game.player && game.state === 'playing') game.player.useItem(i); });
         }
         
-        document.getElementById('pauseBtn').addEventListener('click', () => {
-            if (game.state === 'playing') {
-                game.state = 'paused';
-                document.getElementById('pauseScreen').style.display = 'flex';
-            }
-        });
-        document.getElementById('resumeBtn').addEventListener('click', () => {
-            game.state = 'playing';
-            document.getElementById('pauseScreen').style.display = 'none';
-        });
-        document.getElementById('quitBtn').addEventListener('click', () => {
-            game.state = 'menu';
-            clearInterval(game.timeTimer);
-            document.getElementById('pauseScreen').style.display = 'none';
-            document.getElementById('startScreen').style.display = 'flex';
-            showLevelSelector();
-        });
-        
+        document.getElementById('pauseBtn').addEventListener('click', () => { if (game.state === 'playing') { game.state = 'paused'; document.getElementById('pauseScreen').style.display = 'flex'; } });
+        document.getElementById('resumeBtn').addEventListener('click', () => { game.state = 'playing'; document.getElementById('pauseScreen').style.display = 'none'; });
+        document.getElementById('quitBtn').addEventListener('click', () => { game.state = 'menu'; clearInterval(game.timeTimer); document.getElementById('pauseScreen').style.display = 'none'; document.getElementById('startScreen').style.display = 'flex'; showLevelSelector(); });
         document.getElementById('startBtn').addEventListener('click', startLevel);
         document.getElementById('retryBtn').addEventListener('click', startLevel);
-        document.getElementById('menuBtn').addEventListener('click', () => {
-            game.state = 'menu';
-            document.getElementById('endScreen').classList.remove('show');
-            document.getElementById('startScreen').style.display = 'flex';
-            showLevelSelector();
-        });
+        document.getElementById('menuBtn').addEventListener('click', () => { game.state = 'menu'; document.getElementById('endScreen').classList.remove('show'); document.getElementById('startScreen').style.display = 'flex'; showLevelSelector(); });
         document.getElementById('resetBtn').addEventListener('click', resetProgress);
+        document.getElementById('adBtn').addEventListener('click', () => { showEffectHint('📺 广告中...'); setTimeout(() => { game.score *= 2; showEffectHint('✅ x2分数!'); updateUI(); }, 1500); });
         
-        document.getElementById('adBtn').addEventListener('click', () => {
-            showEffectHint('📺 广告播放中...');
-            setTimeout(() => {
-                game.score *= 2;
-                showEffectHint('✅ x2分数!');
-                updateUI();
-            }, 1500);
-        });
-        
-        // ==================== 初始化 ====================
         loadProgress();
         showLevelSelector();
         
-        const style = document.createElement('style');
-        style.textContent = '@keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }';
-        document.head.appendChild(style);
+        const s = document.createElement('style');
+        s.textContent = '@keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }';
+        document.head.appendChild(s);
         
         gameLoop();
     </script>
