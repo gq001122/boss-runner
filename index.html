@@ -510,22 +510,33 @@
         
         // ==================== 玩家 ====================
         class Player {
-            constructor() {
-                this.x = 60;
-                this.y = H * 0.8;
+            spawn() {
+                // 找到最近的平台放置
+                if (game.platforms.length > 0) {
+                    const plat = game.platforms[0]; // 第一层平台
+                    this.currentPlatform = plat;
+                    this.x = plat.x + plat.width * 0.3; // 左侧
+                    this.y = plat.y - this.height; // 站在平台上
+                    this.velY = 0;
+                    this.onGround = true;
+                } else {
+                    this.x = 60;
+                    this.y = H * 0.8;
+                }
                 this.width = 32;
                 this.height = 48;
                 this.velX = 0;
                 this.velY = 0;
-                this.onGround = false;
+                this.onGround = true;
                 this.sliding = false;
                 this.invincible = false;
                 this.attacking = false;
-                this.currentPlatform = null;
                 this.skinEmoji = '🏃';
             }
             
             update() {
+                // 如果还没有平台，等待
+                if (game.platforms.length === 0) return;
                 let speed = CONFIG.MOVE_SPEED;
                 if (game.activeEffects.speed > 0) speed *= 1.8;
                 
@@ -536,24 +547,47 @@
                 if (this.velY > CONFIG.FALL_SPEED) this.velY = CONFIG.FALL_SPEED;
                 this.y += this.velY;
                 
-                // 平台碰撞
+                // 平台碰撞检测
                 this.onGround = false;
                 this.currentPlatform = null;
                 
+                const playerLeft = this.x;
+                const playerRight = this.x + this.width;
+                const playerBottom = this.y + this.height;
+                
                 for (const plat of game.platforms) {
-                    if (this.velY >= 0) {
-                        const prevBottom = this.y - this.velY + this.height;
-                        const currBottom = this.y + this.height;
-                        
-                        if (prevBottom <= plat.y && currBottom >= plat.y) {
-                            if (this.x + this.width > plat.x && this.x < plat.x + plat.width) {
-                                this.y = plat.y - this.height;
-                                this.velY = 0;
-                                this.onGround = true;
-                                this.currentPlatform = plat;
-                                break;
-                            }
+                    // 检查玩家是否在平台上方的合理范围内
+                    const onPlatformX = playerRight > plat.x && playerLeft < plat.x + plat.width;
+                    const nearPlatformY = this.y + this.height >= plat.y - 10 && this.y + this.height <= plat.y + 30;
+                    
+                    if (onPlatformX && nearPlatformY && this.velY >= 0) {
+                        this.y = plat.y - this.height;
+                        this.velY = 0;
+                        this.onGround = true;
+                        this.currentPlatform = plat;
+                        break;
+                    }
+                }
+                
+                // 如果没有碰到任何平台，且玩家掉出屏幕底部，游戏结束
+                if (this.y > H + 100) {
+                    if (!this.invincible) {
+                        this.invincible = true;
+                        game.lives--;
+                        if (game.lives <= 0) {
+                            levelLose();
                         }
+                        // 重生到第一个平台
+                        setTimeout(() => {
+                            if (game.state === 'playing' && game.platforms.length > 0) {
+                                const plat = game.platforms[0];
+                                this.x = plat.x + plat.width / 2;
+                                this.y = plat.y - this.height - 50;
+                                this.velY = 0;
+                                this.invincible = true;
+                                setTimeout(() => { this.invincible = false; }, 2000);
+                            }
+                        }, 500);
                     }
                 }
                 
@@ -764,14 +798,19 @@
             }
             
             checkPlatform() {
+                // 掉落检测 - 找到下方的平台
                 for (const plat of game.platforms) {
-                    if (this.y >= plat.y - 8 && this.y <= plat.y + 18) {
+                    if (this.y + 42 >= plat.y - 5 && this.y + 42 <= plat.y + 20) {
                         if (this.x >= plat.x && this.x <= plat.x + plat.width) {
                             this.currentPlatform = plat;
                             this.y = plat.y - 42;
                             return;
                         }
                     }
+                }
+                // 如果没找到平台，设为null让它自由落体
+                if (this.y < H) {
+                    this.currentPlatform = null;
                 }
             }
             
@@ -1014,9 +1053,11 @@
                 const portalX = exitPlat.x + exitPlat.width * lv.exit.pos;
                 const portalY = exitPlat.y - 35;
                 game.exitPortal = new Portal(portalX, portalY);
+                
+                // 创建玩家并放置到平台
+                game.player = new Player();
+                game.player.spawn();
             }, 100);
-            
-            game.player = new Player();
             
             updateUI();
             updateItemBar();
