@@ -406,17 +406,11 @@
                 this.x = x;
                 this.y = y;
                 this.active = false;
-                this.particles = [];
-                this.rings = [];
             }
             
             activate() {
                 if (this.active) return;
                 this.active = true;
-                this.rings = [];
-                for (let i = 0; i < 3; i++) {
-                    this.rings.push({ r: 20 + i * 15, alpha: 1 - i * 0.3 });
-                }
             }
             
             draw() {
@@ -425,91 +419,40 @@
                 const sy = this.y - game.cameraY;
                 if (sy > H + 80 || sy < -80) return;
                 
-                try {
-                    const time = Date.now() / 1000;
-                    const theme = game.currentTheme;
-                    const accent = theme && theme.accent ? theme.accent : '#4ecca3';
-                    
-                    ctx.save();
-                    ctx.translate(this.x, sy);
-                    
-                    // 外圈旋转光环
-                    for (let i = 0; i < 8; i++) {
-                        const angle = time * 2 + (i / 8) * Math.PI * 2;
-                        const dist = 45;
-                        ctx.beginPath();
-                        ctx.arc(Math.cos(angle) * dist, Math.sin(angle) * dist, 6, 0, Math.PI * 2);
-                        ctx.fillStyle = accent;
-                        ctx.globalAlpha = 0.7;
-                        ctx.fill();
-                    }
-                    
-                    // 旋转光环环
-                    for (let i = 0; i < 3; i++) {
-                        ctx.beginPath();
-                        ctx.arc(0, 0, 25 + i * 12, 0, Math.PI * 2);
-                        ctx.strokeStyle = accent;
-                        ctx.lineWidth = 3;
-                        ctx.globalAlpha = (0.8 - i * 0.2) * (0.5 + Math.sin(time * 3 + i) * 0.5);
-                        ctx.setLineDash([10, 5]);
-                        ctx.lineDashOffset = time * 30 * (i % 2 === 0 ? 1 : -1);
-                        ctx.stroke();
-                    }
-                    ctx.setLineDash([]);
-                    
-                    // 内部能量漩涡
-                    for (let i = 0; i < 12; i++) {
-                        const angle = -time * 3 + (i / 12) * Math.PI * 2;
-                        const dist = 15 + Math.sin(time * 4 + i) * 5;
-                        ctx.beginPath();
-                        ctx.arc(Math.cos(angle) * dist, Math.sin(angle) * dist, 3, 0, Math.PI * 2);
-                        ctx.fillStyle = i % 2 === 0 ? accent : '#fff';
-                        ctx.globalAlpha = 0.9;
-                        ctx.fill();
-                    }
-                    
-                    // 中心核心
-                    const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 20);
-                    gradient.addColorStop(0, '#fff');
-                    gradient.addColorStop(0.3, accent);
-                    gradient.addColorStop(1, 'transparent');
+                const time = Date.now() / 1000;
+                const theme = game.currentTheme;
+                const accent = (theme && theme.accent) ? theme.accent : '#4ecca3';
+                
+                // 外圈旋转小圆点
+                for (let i = 0; i < 6; i++) {
+                    const angle = time * 2 + (i / 6) * Math.PI * 2;
+                    const dist = 35;
                     ctx.beginPath();
-                    ctx.arc(0, 0, 20, 0, Math.PI * 2);
-                    ctx.fillStyle = gradient;
-                    ctx.globalAlpha = 0.8 + Math.sin(time * 5) * 0.2;
+                    ctx.arc(this.x + Math.cos(angle) * dist, sy + Math.sin(angle) * dist, 5, 0, Math.PI * 2);
+                    ctx.fillStyle = accent;
                     ctx.fill();
-                    
-                    // 光芒
-                    ctx.beginPath();
-                    for (let i = 0; i < 4; i++) {
-                        const angle = time + (i / 4) * Math.PI * 2;
-                        ctx.moveTo(0, 0);
-                        ctx.lineTo(Math.cos(angle) * 55, Math.sin(angle) * 55);
-                    }
-                    ctx.strokeStyle = accent;
-                    ctx.lineWidth = 2;
-                    ctx.globalAlpha = 0.4;
-                    ctx.stroke();
-                    
-                    // 顶部图标
-                    ctx.font = '24px Arial';
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.globalAlpha = 1;
-                    ctx.fillText('🌀', 0, 0);
-                    
-                    ctx.restore();
-                    
-                    // 底部光芒
-                    const glowY = sy + 35;
-                    const glowGradient = ctx.createRadialGradient(this.x, glowY, 0, this.x, glowY, 60);
-                    glowGradient.addColorStop(0, accent + '60');
-                    glowGradient.addColorStop(1, 'transparent');
-                    ctx.fillStyle = glowGradient;
-                    ctx.fillRect(this.x - 60, glowY - 10, 120, 30);
-                } catch (e) {
-                    // 渲染出错时跳过
                 }
+                
+                // 中心圆
+                ctx.beginPath();
+                ctx.arc(this.x, sy, 22, 0, Math.PI * 2);
+                ctx.fillStyle = accent;
+                ctx.globalAlpha = 0.7;
+                ctx.fill();
+                
+                // 内部亮点
+                ctx.beginPath();
+                ctx.arc(this.x, sy, 10, 0, Math.PI * 2);
+                ctx.fillStyle = '#fff';
+                ctx.globalAlpha = 0.9;
+                ctx.fill();
+                
+                // 中心图标
+                ctx.font = '22px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.globalAlpha = 1;
+                ctx.fillText('🌀', this.x, sy);
             }
         }
         
@@ -996,13 +939,20 @@
         }
         
         function showPopup(text, x, y, cls) {
-            const div = document.createElement('div');
-            div.className = cls;
-            div.textContent = text;
-            div.style.left = x + 'px';
-            div.style.top = y + 'px';
-            document.getElementById('gameContainer').appendChild(div);
-            setTimeout(() => div.remove(), 500);
+            try {
+                const div = document.createElement('div');
+                div.className = cls;
+                div.textContent = text;
+                div.style.left = x + 'px';
+                div.style.top = y + 'px';
+                const container = document.getElementById('gameContainer');
+                if (container) {
+                    container.appendChild(div);
+                    setTimeout(() => { if (div.parentNode) div.remove(); }, 500);
+                }
+            } catch (e) {
+                // 忽略弹窗错误
+            }
         }
         
         function showEffectHint(text) {
@@ -1028,8 +978,10 @@
         function updateItemBar() {
             for (let i = 0; i < 3; i++) {
                 const slot = document.getElementById('item' + (i + 1));
-                slot.textContent = game.inventory[i] ? ITEM_CFG[game.inventory[i]].e : '';
-                slot.classList.toggle('active', game.inventory[i] !== null);
+                if (slot) {
+                    slot.textContent = game.inventory[i] ? ITEM_CFG[game.inventory[i]].e : '';
+                    slot.classList.toggle('active', game.inventory[i] !== null);
+                }
             }
         }
         
@@ -1212,32 +1164,42 @@
             game.items.forEach(i => i.draw());
             
             // 掉落物
-            game.drops.forEach(d => {
-                d.x += d.vx || 0;
-                d.y += d.vy || 0;
-                if (d.vy !== undefined) d.vy += 0.2;
-                d.life--;
-                
-                const sy = d.y - game.cameraY;
-                ctx.globalAlpha = Math.min(1, d.life / 30);
-                ctx.font = d.type ? '22px Arial' : '18px Arial';
-                ctx.textAlign = 'center';
-                ctx.fillText(d.type ? ITEM_CFG[d.type].e : d.emoji, d.x, sy);
-                ctx.globalAlpha = 1;
-                
-                if (d.type && Math.abs(d.x - game.player.x) < 28 && Math.abs(d.y - game.player.y) < 32) {
-                    for (let i = 0; i < 3; i++) {
-                        if (!game.inventory[i]) {
-                            game.inventory[i] = d.type;
-                            updateItemBar();
-                            showEffectHint(ITEM_CFG[d.type].e + ' ' + ITEM_CFG[d.type].n + '!');
-                            d.life = 0;
-                            break;
+            if (game.drops && game.drops.length > 0) {
+                const dropsToRemove = [];
+                game.drops.forEach((d, idx) => {
+                    if (!d) return;
+                    d.x += d.vx || 0;
+                    d.y += d.vy || 0;
+                    if (d.vy !== undefined) d.vy += 0.2;
+                    d.life--;
+                    
+                    const sy = d.y - game.cameraY;
+                    if (sy > -50 && sy < H + 50) {
+                        ctx.globalAlpha = Math.min(1, d.life / 30);
+                        ctx.font = d.type ? '22px Arial' : '18px Arial';
+                        ctx.textAlign = 'center';
+                        ctx.fillText(d.type ? ITEM_CFG[d.type].e : d.emoji, d.x, sy);
+                        ctx.globalAlpha = 1;
+                    }
+                    
+                    if (d.type && game.player && Math.abs(d.x - game.player.x) < 28 && Math.abs(d.y - game.player.y) < 32) {
+                        for (let i = 0; i < 3; i++) {
+                            if (!game.inventory[i]) {
+                                game.inventory[i] = d.type;
+                                updateItemBar();
+                                showEffectHint(ITEM_CFG[d.type].e + ' ' + ITEM_CFG[d.type].n + '!');
+                                dropsToRemove.push(idx);
+                                break;
+                            }
                         }
                     }
-                }
-            });
-            game.drops = game.drops.filter(d => d.life > 0);
+                    
+                    if (d.life <= 0) dropsToRemove.push(idx);
+                });
+                // 从后往前删除，避免索引问题
+                dropsToRemove.sort((a, b) => b - a);
+                dropsToRemove.forEach(idx => game.drops.splice(idx, 1));
+            }
             
             // 玩家
             game.player.update();
