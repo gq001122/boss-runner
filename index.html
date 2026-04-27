@@ -411,8 +411,9 @@
             }
             
             activate() {
+                if (this.active) return;
                 this.active = true;
-                // 初始化光环
+                this.rings = [];
                 for (let i = 0; i < 3; i++) {
                     this.rings.push({ r: 20 + i * 15, alpha: 1 - i * 0.3 });
                 }
@@ -672,6 +673,7 @@
             }
             
             attack() {
+                if (this.attacking) return;
                 this.attacking = true;
                 setTimeout(() => { this.attacking = false; }, 100);
                 
@@ -841,6 +843,7 @@
             }
             
             die() {
+                if (this.dead) return;
                 this.dead = true;
                 addScore(this.pts);
                 addCombo();
@@ -942,7 +945,9 @@
                 if (this.type === 'key') {
                     game.hasKey = true;
                     showEffectHint('🔑 获得钥匙!');
-                    if (game.exitPortal) game.exitPortal.activate();
+                    if (game.exitPortal) {
+                        game.exitPortal.activate();
+                    }
                 } else {
                     for (let i = 0; i < 3; i++) {
                         if (!game.inventory[i]) {
@@ -994,10 +999,13 @@
         
         function showEffectHint(text) {
             const h = document.getElementById('tutorial');
+            if (!h) return;
             h.textContent = text;
             h.style.background = 'rgba(78,204,163,0.9)';
             h.style.display = 'block';
-            setTimeout(() => { h.style.background = 'rgba(0,0,0,0.8)'; h.style.display = 'none'; }, 1000);
+            setTimeout(() => { 
+                if (h) { h.style.background = 'rgba(0,0,0,0.8)'; h.style.display = 'none'; }
+            }, 1000);
         }
         
         function updateUI() {
