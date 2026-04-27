@@ -510,6 +510,19 @@
         
         // ==================== 玩家 ====================
         class Player {
+            constructor() {
+                this.width = 32;
+                this.height = 48;
+                this.velX = 0;
+                this.velY = 0;
+                this.onGround = false;
+                this.sliding = false;
+                this.invincible = false;
+                this.attacking = false;
+                this.currentPlatform = null;
+                this.skinEmoji = '🏃';
+            }
+            
             spawn() {
                 // 找到最近的平台放置
                 if (game.platforms.length > 0) {
@@ -523,15 +536,6 @@
                     this.x = 60;
                     this.y = H * 0.8;
                 }
-                this.width = 32;
-                this.height = 48;
-                this.velX = 0;
-                this.velY = 0;
-                this.onGround = true;
-                this.sliding = false;
-                this.invincible = false;
-                this.attacking = false;
-                this.skinEmoji = '🏃';
             }
             
             update() {
