@@ -539,9 +539,25 @@
                 // 向左移动
                 this.x -= this.speed;
                 
-                // 碰撞玩家
-                const dist = Math.abs(this.x - game.player.x);
-                if (dist < 40 && !game.player.invincible) {
+                // 碰撞玩家检测
+                // 条件：玩家不在无敌状态、滑铲状态下无敌、跳跃时检查y轴
+                const xDist = Math.abs(this.x - game.player.x);
+                const yDist = Math.abs(this.y - game.player.y);
+                const playerHeight = game.player.sliding ? 35 : 70;
+                
+                // 滑铲时无敌穿过
+                if (game.player.sliding) return;
+                
+                // 跳跃时只检测近距离碰撞
+                if (!game.player.onGround) {
+                    if (xDist < 30 && yDist < 60) {
+                        game.player.hit();
+                    }
+                    return;
+                }
+                
+                // 地面站立时检测
+                if (xDist < 40 && yDist < 50 && !game.player.invincible) {
                     game.player.hit();
                 }
             }
