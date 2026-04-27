@@ -425,87 +425,91 @@
                 const sy = this.y - game.cameraY;
                 if (sy > H + 80 || sy < -80) return;
                 
-                const time = Date.now() / 1000;
-                const theme = game.currentTheme;
-                const accent = theme ? theme.accent : '#4ecca3';
-                
-                ctx.save();
-                ctx.translate(this.x, sy);
-                
-                // 外圈旋转光环
-                for (let i = 0; i < 8; i++) {
-                    const angle = time * 2 + (i / 8) * Math.PI * 2;
-                    const dist = 45;
+                try {
+                    const time = Date.now() / 1000;
+                    const theme = game.currentTheme;
+                    const accent = theme && theme.accent ? theme.accent : '#4ecca3';
+                    
+                    ctx.save();
+                    ctx.translate(this.x, sy);
+                    
+                    // 外圈旋转光环
+                    for (let i = 0; i < 8; i++) {
+                        const angle = time * 2 + (i / 8) * Math.PI * 2;
+                        const dist = 45;
+                        ctx.beginPath();
+                        ctx.arc(Math.cos(angle) * dist, Math.sin(angle) * dist, 6, 0, Math.PI * 2);
+                        ctx.fillStyle = accent;
+                        ctx.globalAlpha = 0.7;
+                        ctx.fill();
+                    }
+                    
+                    // 旋转光环环
+                    for (let i = 0; i < 3; i++) {
+                        ctx.beginPath();
+                        ctx.arc(0, 0, 25 + i * 12, 0, Math.PI * 2);
+                        ctx.strokeStyle = accent;
+                        ctx.lineWidth = 3;
+                        ctx.globalAlpha = (0.8 - i * 0.2) * (0.5 + Math.sin(time * 3 + i) * 0.5);
+                        ctx.setLineDash([10, 5]);
+                        ctx.lineDashOffset = time * 30 * (i % 2 === 0 ? 1 : -1);
+                        ctx.stroke();
+                    }
+                    ctx.setLineDash([]);
+                    
+                    // 内部能量漩涡
+                    for (let i = 0; i < 12; i++) {
+                        const angle = -time * 3 + (i / 12) * Math.PI * 2;
+                        const dist = 15 + Math.sin(time * 4 + i) * 5;
+                        ctx.beginPath();
+                        ctx.arc(Math.cos(angle) * dist, Math.sin(angle) * dist, 3, 0, Math.PI * 2);
+                        ctx.fillStyle = i % 2 === 0 ? accent : '#fff';
+                        ctx.globalAlpha = 0.9;
+                        ctx.fill();
+                    }
+                    
+                    // 中心核心
+                    const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 20);
+                    gradient.addColorStop(0, '#fff');
+                    gradient.addColorStop(0.3, accent);
+                    gradient.addColorStop(1, 'transparent');
                     ctx.beginPath();
-                    ctx.arc(Math.cos(angle) * dist, Math.sin(angle) * dist, 6, 0, Math.PI * 2);
-                    ctx.fillStyle = accent;
-                    ctx.globalAlpha = 0.7;
+                    ctx.arc(0, 0, 20, 0, Math.PI * 2);
+                    ctx.fillStyle = gradient;
+                    ctx.globalAlpha = 0.8 + Math.sin(time * 5) * 0.2;
                     ctx.fill();
-                }
-                
-                // 旋转光环环
-                for (let i = 0; i < 3; i++) {
+                    
+                    // 光芒
                     ctx.beginPath();
-                    ctx.arc(0, 0, 25 + i * 12, 0, Math.PI * 2);
+                    for (let i = 0; i < 4; i++) {
+                        const angle = time + (i / 4) * Math.PI * 2;
+                        ctx.moveTo(0, 0);
+                        ctx.lineTo(Math.cos(angle) * 55, Math.sin(angle) * 55);
+                    }
                     ctx.strokeStyle = accent;
-                    ctx.lineWidth = 3;
-                    ctx.globalAlpha = (0.8 - i * 0.2) * (0.5 + Math.sin(time * 3 + i) * 0.5);
-                    ctx.setLineDash([10, 5]);
-                    ctx.lineDashOffset = time * 30 * (i % 2 === 0 ? 1 : -1);
+                    ctx.lineWidth = 2;
+                    ctx.globalAlpha = 0.4;
                     ctx.stroke();
+                    
+                    // 顶部图标
+                    ctx.font = '24px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.globalAlpha = 1;
+                    ctx.fillText('🌀', 0, 0);
+                    
+                    ctx.restore();
+                    
+                    // 底部光芒
+                    const glowY = sy + 35;
+                    const glowGradient = ctx.createRadialGradient(this.x, glowY, 0, this.x, glowY, 60);
+                    glowGradient.addColorStop(0, accent + '60');
+                    glowGradient.addColorStop(1, 'transparent');
+                    ctx.fillStyle = glowGradient;
+                    ctx.fillRect(this.x - 60, glowY - 10, 120, 30);
+                } catch (e) {
+                    // 渲染出错时跳过
                 }
-                ctx.setLineDash([]);
-                
-                // 内部能量漩涡
-                for (let i = 0; i < 12; i++) {
-                    const angle = -time * 3 + (i / 12) * Math.PI * 2;
-                    const dist = 15 + Math.sin(time * 4 + i) * 5;
-                    ctx.beginPath();
-                    ctx.arc(Math.cos(angle) * dist, Math.sin(angle) * dist, 3, 0, Math.PI * 2);
-                    ctx.fillStyle = i % 2 === 0 ? accent : '#fff';
-                    ctx.globalAlpha = 0.9;
-                    ctx.fill();
-                }
-                
-                // 中心核心
-                const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 20);
-                gradient.addColorStop(0, '#fff');
-                gradient.addColorStop(0.3, accent);
-                gradient.addColorStop(1, 'transparent');
-                ctx.beginPath();
-                ctx.arc(0, 0, 20, 0, Math.PI * 2);
-                ctx.fillStyle = gradient;
-                ctx.globalAlpha = 0.8 + Math.sin(time * 5) * 0.2;
-                ctx.fill();
-                
-                // 光芒
-                ctx.beginPath();
-                for (let i = 0; i < 4; i++) {
-                    const angle = time + (i / 4) * Math.PI * 2;
-                    ctx.moveTo(0, 0);
-                    ctx.lineTo(Math.cos(angle) * 55, Math.sin(angle) * 55);
-                }
-                ctx.strokeStyle = accent;
-                ctx.lineWidth = 2;
-                ctx.globalAlpha = 0.4;
-                ctx.stroke();
-                
-                // 顶部图标
-                ctx.font = '24px Arial';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.globalAlpha = 1;
-                ctx.fillText('🌀', 0, 0);
-                
-                ctx.restore();
-                
-                // 底部光芒
-                const glowY = sy + 35;
-                const glowGradient = ctx.createRadialGradient(this.x, glowY, 0, this.x, glowY, 60);
-                glowGradient.addColorStop(0, accent + '60');
-                glowGradient.addColorStop(1, 'transparent');
-                ctx.fillStyle = glowGradient;
-                ctx.fillRect(this.x - 60, glowY - 10, 120, 30);
             }
         }
         
@@ -971,20 +975,24 @@
         }
         
         function addScore(pts) {
+            if (game.state !== 'playing') return;
             const mult = game.combo > 5 ? 2 : game.combo > 10 ? 3 : 1;
             game.score += pts * mult;
-            showPopup('+' + pts * mult, game.player.x, game.player.y - game.cameraY - 35, 'scorePopup');
+            if (game.player) showPopup('+' + pts * mult, game.player.x, game.player.y - game.cameraY - 35, 'scorePopup');
             updateUI();
         }
         
         function addCombo() {
+            if (game.state !== 'playing') return;
             game.combo++;
             if (game.combo > game.maxCombo) game.maxCombo = game.combo;
-            if (game.combo > 2) showPopup(game.combo + '连击!', game.player.x, game.player.y - game.cameraY - 55, 'comboPopup');
+            if (game.combo > 2 && game.player) showPopup(game.combo + '连击!', game.player.x, game.player.y - game.cameraY - 55, 'comboPopup');
             game.energy = Math.min(CONFIG.ENERGY_MAX, game.energy + CONFIG.ENERGY_PER_HIT);
             updateUI();
             clearTimeout(game.comboTimer);
-            game.comboTimer = setTimeout(() => { game.combo = 0; updateUI(); }, CONFIG.COMBO_TIMEOUT);
+            game.comboTimer = setTimeout(() => { 
+                if (game.state === 'playing') { game.combo = 0; updateUI(); }
+            }, CONFIG.COMBO_TIMEOUT);
         }
         
         function showPopup(text, x, y, cls) {
@@ -1088,7 +1096,8 @@
         }
         
         function checkExit() {
-            if (!game.hasKey || !game.exitPortal) return;
+            if (game.state !== 'playing') return;
+            if (!game.hasKey || !game.exitPortal || !game.player) return;
             
             const p = game.player;
             const dx = Math.abs(p.x - game.exitPortal.x);
@@ -1098,6 +1107,8 @@
         }
         
         function levelWin() {
+            if (game.state !== 'playing') return;
+            
             game.state = 'win';
             clearInterval(game.timeTimer);
             
@@ -1112,24 +1123,42 @@
             
             const stories = {1:'冲出办公室!',2:'茶水间狼藉!',3:'主管被你击败!',4:'会议室恶作剧!',5:'打印机大战!',6:'经理认输!',7:'电梯逃脱!',8:'冲破安保!',9:'CEO跪地!',10:'天台风景!',11:'董事会投降!',12:'终极胜利!'};
             
-            document.getElementById('endTitle').textContent = '🎉 过关!';
-            document.getElementById('endStory').textContent = stories[game.currentLevel] || '太棒了!';
-            document.getElementById('starsEarned').textContent = '⭐'.repeat(earned) + '☆'.repeat(3-earned);
-            document.getElementById('finalScore').textContent = game.score;
-            document.getElementById('maxCombo').textContent = game.maxCombo;
-            document.getElementById('endScreen').className = 'win show';
+            const endTitle = document.getElementById('endTitle');
+            const endStory = document.getElementById('endStory');
+            const starsEarned = document.getElementById('starsEarned');
+            const finalScore = document.getElementById('finalScore');
+            const maxCombo = document.getElementById('maxCombo');
+            const endScreen = document.getElementById('endScreen');
+            
+            if (endTitle) endTitle.textContent = '🎉 过关!';
+            if (endStory) endStory.textContent = stories[game.currentLevel] || '太棒了!';
+            if (starsEarned) starsEarned.textContent = '⭐'.repeat(earned) + '☆'.repeat(3-earned);
+            if (finalScore) finalScore.textContent = game.score;
+            if (maxCombo) maxCombo.textContent = game.maxCombo;
+            if (endScreen) endScreen.className = 'win show';
         }
         
         function levelLose() {
+            if (game.state !== 'playing') return;
+            
             game.state = 'lose';
             clearInterval(game.timeTimer);
             
-            document.getElementById('endTitle').textContent = '💨 失败!';
-            document.getElementById('endStory').textContent = '被' + (game.enemies.find(e => !e.dead)?.name || '老板') + '抓住了...';
-            document.getElementById('starsEarned').textContent = '☆☆☆';
-            document.getElementById('finalScore').textContent = game.score;
-            document.getElementById('maxCombo').textContent = game.maxCombo;
-            document.getElementById('endScreen').className = 'lose show';
+            const endTitle = document.getElementById('endTitle');
+            const endStory = document.getElementById('endStory');
+            const starsEarned = document.getElementById('starsEarned');
+            const finalScore = document.getElementById('finalScore');
+            const maxCombo = document.getElementById('maxCombo');
+            const endScreen = document.getElementById('endScreen');
+            
+            const deadEnemy = game.enemies ? game.enemies.find(e => !e.dead) : null;
+            
+            if (endTitle) endTitle.textContent = '💨 失败!';
+            if (endStory) endStory.textContent = '被' + (deadEnemy ? deadEnemy.name : '老板') + '抓住了...';
+            if (starsEarned) starsEarned.textContent = '☆☆☆';
+            if (finalScore) finalScore.textContent = game.score;
+            if (maxCombo) maxCombo.textContent = game.maxCombo;
+            if (endScreen) endScreen.className = 'lose show';
         }
         
         function saveProgress() { localStorage.setItem('bossRunnerPlat_prog', JSON.stringify({unlocks:game.unlocks,stars:game.stars})); }
